@@ -239,7 +239,31 @@
             window.speechSynthesis.cancel();
             mowaWlaczona = false;
         }
+// GPS - lokalizacja użytkownika
+let markerGPS = null;
 
+mapa.locate({ watch: true, enableHighAccuracy: true });
+
+mapa.on('locationfound', function(e) {
+    if (markerGPS) {
+        markerGPS.setLatLng(e.latlng);
+    } else {
+        markerGPS = L.circleMarker(e.latlng, {
+            radius: 10,
+            fillColor: "#00d4ff",
+            color: "#fff",
+            weight: 3,
+            fillOpacity: 1
+        }).addTo(mapa);
+        markerGPS.bindPopup("📍 Jesteś tutaj");
+        // Wycentruj mapę na użytkowniku przy pierwszym sygnale
+        mapa.setView(e.latlng, 16);
+    }
+});
+
+mapa.on('locationerror', function() {
+    console.log('Brak dostępu do GPS');
+});
         // Marker Wielicka/Teligi
         L.circleMarker([50.01420215172329, 19.999269960360717], {
             radius: 10, fillColor: "#ff0000", color: "#fff", weight: 2, fillOpacity: 1

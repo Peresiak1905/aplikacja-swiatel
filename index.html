@@ -19,38 +19,20 @@
             font-size: 22px;
             color: #00d4ff;
         }
-        #mapa {
-            width: 100%;
-            height: 80vh;
-        }
+        #mapa { width: 100%; height: 50vh; }
         #panel {
             display: none;
-            position: fixed;
-            bottom: 0;
-            left: 0;
             width: 100%;
             background: #16213e;
             border-top: 2px solid #00d4ff;
             padding: 20px;
             box-sizing: border-box;
             text-align: center;
-            z-index: 9999;
         }
-        #panel h2 {
-            margin: 0 0 10px 0;
-            color: #00d4ff;
-            font-size: 18px;
-        }
-        #swiatlo { font-size: 48px; margin: 10px 0; }
-        #odliczanie { font-size: 36px; font-weight: bold; margin: 5px 0; }
-        #opis { font-size: 16px; color: #aaa; margin: 5px 0; }
-        #przyciski-pomiaru {
-            margin: 10px 0;
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
+        #panel h2 { margin: 0 0 10px 0; color: #00d4ff; font-size: 18px; }
+        #swiatlo { font-size: 80px; margin: 10px 0; }
+        #odliczanie { font-size: 48px; font-weight: bold; margin: 5px 0; }
+        #opis { font-size: 16px; color: #aaa; margin: 5px 0 15px 0; }
         .btn-pomiar {
             padding: 12px 20px;
             border: none;
@@ -58,31 +40,12 @@
             font-size: 15px;
             font-weight: bold;
             cursor: pointer;
+            margin: 5px;
         }
-        #btn-czerwone {
-            background: #e74c3c;
-            color: white;
-        }
-        #btn-zielone {
-            background: #2ecc71;
-            color: white;
-        }
-        #btn-zapisz {
-            background: #00d4ff;
-            color: #1a1a2e;
-            display: none;
-        }
-        #log-pomiarow {
-            font-size: 13px;
-            color: #aaa;
-            margin: 8px 0;
-            min-height: 20px;
-        }
-        #dane-skrzyzowania {
-            font-size: 13px;
-            color: #ffcc00;
-            margin: 5px 0;
-        }
+        #btn-czerwone { background: #e74c3c; color: white; }
+        #btn-zielone { background: #2ecc71; color: white; }
+        #btn-zapisz { background: #00d4ff; color: #1a1a2e; display: none; }
+        #log-pomiarow { font-size: 13px; color: #aaa; margin: 8px 0; }
         #zamknij {
             margin-top: 10px;
             padding: 8px 20px;
@@ -100,15 +63,13 @@
 <body>
     <h1>Aplikacja Świateł Kraków</h1>
     <div id="mapa"></div>
-
     <div id="panel">
         <h2 id="nazwa-skrzyzowania">Skrzyżowanie</h2>
         <div id="swiatlo">⚫</div>
         <div id="odliczanie">--</div>
-        <div id="opis">Kliknij przycisk gdy zmienia się światło</div>
-        <div id="dane-skrzyzowania"></div>
+        <div id="opis">Ładowanie...</div>
         <div id="log-pomiarow"></div>
-        <div id="przyciski-pomiaru">
+        <div>
             <button class="btn-pomiar" id="btn-czerwone" onclick="zapiszZmiane('czerwone')">🔴 Zapaliło się CZERWONE</button>
             <button class="btn-pomiar" id="btn-zielone" onclick="zapiszZmiane('zielone')">🟢 Zapaliło się ZIELONE</button>
             <button class="btn-pomiar" id="btn-zapisz" onclick="zapiszDane()">💾 Zapisz dane</button>
@@ -117,8 +78,7 @@
     </div>
 
     <script>
-        const mapa = L.map('mapa').setView([50.01420215172329, 19.999269960360717], 13);
-
+        const mapa = L.map('mapa').setView([50.01420215172329, 19.999269960360717], 15);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap'
         }).addTo(mapa);
@@ -127,90 +87,32 @@
         let pomiary = [];
         let interwał = null;
 
-        // Wczytaj zapisane dane z localStorage
-        function wczytajDane(id) {
-            const dane = localStorage.getItem('swiatla_' + id);
-            return dane ? JSON.parse(dane) : null;
-        }
-
-        // Zapisz dane do localStorage
-        function zapiszDane() {
-            if (pomiary.length < 2) {
-                alert("Potrzebujesz co najmniej 2 pomiarów żeby zapisać dane.");
-                return;
+        // Skrzyżowania z zapisanymi danymi
+        const daneSkrzyzowan = {
+            'wielicka_teligi': {
+                startZielone: { h: 9, m: 26, s: 16 },
+                czasZielone: 15,
+                czasCzerwone: 90
             }
+        };
 
-            // Oblicz średnie czasy z pomiarów
-            let sumaZielone = 0, sumaZielonaLiczba = 0;
-            let sumaCzerwone = 0, sumaCzerwonaLiczba = 0;
+        function obliczStan(dane) {
+            const teraz = new Date();
+            const start = new Date(teraz);
+            start.setHours(dane.startZielone.h);
+            start.setMinutes(dane.startZielone.m);
+            start.setSeconds(dane.startZielone.s);
+            start.setMilliseconds(0);
+            if (start > teraz) start.setDate(start.getDate() - 1);
 
-            for (let i = 1; i < pomiary.length; i++) {
-                const roznica = (pomiary[i].czas - pomiary[i-1].czas) / 1000;
-                if (pomiary[i].kolor === 'zielone') {
-                    sumaCzerwone += roznica;
-                    sumaCzerwonaLiczba++;
-                } else {
-                    sumaZielone += roznica;
-                    sumaZielonaLiczba++;
-                }
-            }
+            const cykl = dane.czasZielone + dane.czasCzerwone;
+            const sekundy = Math.floor((teraz - start) / 1000);
+            const pozycja = sekundy % cykl;
 
-            const dane = {
-                id: aktualneSkrzyzowanie.id,
-                nazwa: aktualneSkrzyzowanie.nazwa,
-                startZielone: pomiary.find(p => p.kolor === 'zielone') 
-                    ? formatujCzas(new Date(pomiary.find(p => p.kolor === 'zielone').czas))
-                    : null,
-                czasZielone: sumaZielonaLiczba > 0 ? Math.round(sumaZielone / sumaZielonaLiczba) : null,
-                czasCzerwone: sumaCzerwonaLiczba > 0 ? Math.round(sumaCzerwone / sumaCzerwonaLiczba) : null
-            };
-
-            localStorage.setItem('swiatla_' + aktualneSkrzyzowanie.id, JSON.stringify(dane));
-            alert("✅ Dane zapisane!\nZielone: " + dane.czasZielone + "s\nCzerwone: " + dane.czasCzerwone + "s");
-            pokazDaneSkrzyzowania(dane);
-        }
-
-        function formatujCzas(date) {
-            return {
-                h: date.getHours(),
-                m: date.getMinutes(),
-                s: date.getSeconds()
-            };
-        }
-
-        function zapiszZmiane(kolor) {
-            const teraz = Date.now();
-            pomiary.push({ kolor, czas: teraz });
-
-            const godzinaStr = new Date(teraz).toLocaleTimeString('pl-PL');
-            const log = document.getElementById('log-pomiarow');
-            const ikona = kolor === 'czerwone' ? '🔴' : '🟢';
-            log.innerHTML += ikona + ' ' + godzinaStr + '<br>';
-
-            // Pokaż przycisk zapisz po 2 pomiarach
-            if (pomiary.length >= 2) {
-                document.getElementById('btn-zapisz').style.display = 'inline-block';
-            }
-
-            // Aktualizuj emoji światła
-            document.getElementById('swiatlo').innerText = kolor === 'czerwone' ? '🔴' : '🟢';
-
-            // Oblicz czas ostatniego odcinka
-            if (pomiary.length >= 2) {
-                const ostatni = pomiary[pomiary.length - 1];
-                const przedostatni = pomiary[pomiary.length - 2];
-                const sekundy = Math.round((ostatni.czas - przedostatni.czas) / 1000);
-                const poprzedniKolor = przedostatni.kolor;
-                document.getElementById('odliczanie').innerText = poprzedniKolor + ' trwało: ' + sekundy + 's';
-            }
-        }
-
-        function pokazDaneSkrzyzowania(dane) {
-            const el = document.getElementById('dane-skrzyzowania');
-            if (dane && dane.czasZielone && dane.czasCzerwone) {
-                el.innerText = '📊 Zapisane: Zielone ' + dane.czasZielone + 's | Czerwone ' + dane.czasCzerwone + 's';
+            if (pozycja < dane.czasZielone) {
+                return { kolor: "zielone", pozostalo: dane.czasZielone - pozycja };
             } else {
-                el.innerText = '📊 Brak zapisanych danych — zmierz światła na miejscu';
+                return { kolor: "czerwone", pozostalo: cykl - pozycja };
             }
         }
 
@@ -219,63 +121,89 @@
             pomiary = [];
             document.getElementById('panel').style.display = 'block';
             document.getElementById('nazwa-skrzyzowania').innerText = skrzyzowanie.nazwa;
-            document.getElementById('swiatlo').innerText = '⚫';
-            document.getElementById('odliczanie').innerText = '--';
-            document.getElementById('opis').innerText = 'Kliknij przycisk gdy zmienia się światło';
             document.getElementById('log-pomiarow').innerHTML = '';
             document.getElementById('btn-zapisz').style.display = 'none';
 
-            const dane = wczytajDane(skrzyzowanie.id);
-            pokazDaneSkrzyzowania(dane);
+            if (interwał) clearInterval(interwał);
+
+            const dane = daneSkrzyzowan[skrzyzowanie.id];
+
+            if (dane) {
+                // Mamy dane — pokazuj odliczanie na żywo
+                document.getElementById('opis').innerText = 'Odliczanie na żywo';
+                function aktualizuj() {
+                    const stan = obliczStan(dane);
+                    document.getElementById('swiatlo').innerText = stan.kolor === 'zielone' ? '🟢' : '🔴';
+                    document.getElementById('odliczanie').innerText = stan.pozostalo + ' sek';
+                    document.getElementById('opis').innerText = stan.kolor === 'zielone' ? '🚗 Jedź! Zielone jeszcze przez:' : '✋ Poczekaj. Czerwone jeszcze przez:';
+                }
+                aktualizuj();
+                interwał = setInterval(aktualizuj, 1000);
+            } else {
+                // Brak danych — tryb pomiaru
+                document.getElementById('swiatlo').innerText = '⚫';
+                document.getElementById('odliczanie').innerText = '--';
+                document.getElementById('opis').innerText = 'Kliknij gdy zmienia się światło';
+            }
+        }
+
+        function zapiszZmiane(kolor) {
+            const teraz = Date.now();
+            pomiary.push({ kolor, czas: teraz });
+            const godzinaStr = new Date(teraz).toLocaleTimeString('pl-PL');
+            const ikona = kolor === 'czerwone' ? '🔴' : '🟢';
+            document.getElementById('log-pomiarow').innerHTML += ikona + ' ' + godzinaStr + '<br>';
+            document.getElementById('swiatlo').innerText = kolor === 'czerwone' ? '🔴' : '🟢';
+            if (pomiary.length >= 2) {
+                document.getElementById('btn-zapisz').style.display = 'inline-block';
+                const roznica = Math.round((pomiary[pomiary.length-1].czas - pomiary[pomiary.length-2].czas) / 1000);
+                document.getElementById('odliczanie').innerText = pomiary[pomiary.length-2].kolor + ' trwało: ' + roznica + 's';
+            }
+        }
+
+        function zapiszDane() {
+            if (pomiary.length < 2) return;
+            let sumaZ = 0, liczbZ = 0, sumaC = 0, liczbC = 0;
+            for (let i = 1; i < pomiary.length; i++) {
+                const roznica = (pomiary[i].czas - pomiary[i-1].czas) / 1000;
+                if (pomiary[i].kolor === 'zielone') { sumaC += roznica; liczbC++; }
+                else { sumaZ += roznica; liczbZ++; }
+            }
+            const pierwszeZielone = pomiary.find(p => p.kolor === 'zielone');
+            const d = new Date(pierwszeZielone.czas);
+            daneSkrzyzowan[aktualneSkrzyzowanie.id] = {
+                startZielone: { h: d.getHours(), m: d.getMinutes(), s: d.getSeconds() },
+                czasZielone: liczbZ > 0 ? Math.round(sumaZ / liczbZ) : 15,
+                czasCzerwone: liczbC > 0 ? Math.round(sumaC / liczbC) : 90
+            };
+            alert('✅ Dane zapisane!');
+            otworzPanel(aktualneSkrzyzowanie);
         }
 
         function zamknijPanel() {
             document.getElementById('panel').style.display = 'none';
-            pomiary = [];
             if (interwał) clearInterval(interwał);
         }
 
-        // Sygnalizator Wielicka/Teligi
-        const markerWielicka = L.circleMarker([50.01420215172329, 19.999269960360717], {
-            radius: 8,
-            fillColor: "#ff0000",
-            color: "#fff",
-            weight: 2,
-            fillOpacity: 1
-        }).addTo(mapa);
-
-        markerWielicka.on('click', function() {
-           otworzPanel({
-    id: 'wielicka_teligi',
-    nazwa: 'Wielicka / Teligi',
-    lat: 50.01420215172329,
-    lng: 19.999269960360717,
-    startZielone: { h: 9, m: 26, s: 16 },
-    czasZielone: 15,
-    czasCzerwone: 90
-});
+        // Marker Wielicka/Teligi
+        L.circleMarker([50.01420215172329, 19.999269960360717], {
+            radius: 10, fillColor: "#ff0000", color: "#fff", weight: 2, fillOpacity: 1
+        }).addTo(mapa).on('click', function() {
+            otworzPanel({ id: 'wielicka_teligi', nazwa: 'Wielicka / Teligi' });
         });
 
-        // Wczytaj pozostałe sygnalizatory z GeoJSON
+        // Pozostałe sygnalizatory z GeoJSON
         fetch('sygnalizatory.geojson')
-            .then(response => response.json())
+            .then(r => r.json())
             .then(data => {
                 L.geoJSON(data, {
-                    pointToLayer: function(feature, latlng) {
-                        return L.circleMarker(latlng, {
-                            radius: 5,
-                            fillColor: "#ffcc00",
-                            color: "#fff",
-                            weight: 1,
-                            fillOpacity: 0.8
-                        });
-                    },
-                    onEachFeature: function(feature, layer) {
-                        const id = 'osm_' + feature.id;
-                        const nazwa = feature.properties.name || 'Sygnalizator';
-                        layer.on('click', function() {
-                            otworzPanel({ id, nazwa, lat: feature.geometry.coordinates[1], lng: feature.geometry.coordinates[0] });
-                        });
+                    pointToLayer: (f, latlng) => L.circleMarker(latlng, {
+                        radius: 5, fillColor: "#ffcc00", color: "#fff", weight: 1, fillOpacity: 0.8
+                    }),
+                    onEachFeature: (f, layer) => {
+                        const id = 'osm_' + f.id;
+                        const nazwa = f.properties.name || 'Sygnalizator';
+                        layer.on('click', () => otworzPanel({ id, nazwa }));
                     }
                 }).addTo(mapa);
             });

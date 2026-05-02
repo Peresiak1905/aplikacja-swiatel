@@ -12,6 +12,7 @@
         #btn-trasa { background: #444; color: white; }
         #btn-zapisz-trase { background: #27ae60; color: white; display: none; }
         #btn-wybierz-trase { background: #2980b9; color: white; }
+        #btn-wyznacz { background: #8e44ad; color: white; }
         #mapa { width: 100%; height: calc(100vh - 80px); }
         #panel {
             display: none; position: fixed; bottom: 0; left: 0;
@@ -60,28 +61,74 @@
         #btn-nowa-trasa { display: block; width: 100%; margin: 10px 0 5px 0; padding: 10px; background: #27ae60; color: white; border: none; border-radius: 10px; font-size: 14px; cursor: pointer; }
         #btn-zamknij-modal { display: block; width: 100%; margin: 5px 0; padding: 8px; background: #444; color: white; border: none; border-radius: 10px; font-size: 13px; cursor: pointer; }
         #info-edycja { display: none; text-align: center; padding: 5px; background: #f39c12; color: #1a1a2e; font-size: 12px; font-weight: bold; }
+        #modal-routing {
+            display: none; position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 99999;
+            justify-content: center; align-items: center;
+        }
+        #modal-routing.aktywny { display: flex; }
+        #modal-routing-zawartosc {
+            background: #16213e; border: 2px solid #8e44ad;
+            border-radius: 15px; padding: 20px;
+            width: 320px; text-align: center;
+            max-height: 90vh; overflow-y: auto;
+        }
+        #modal-routing-zawartosc h3 { color: #8e44ad; margin: 0 0 15px 0; }
+        .input-adres {
+            width: 100%; padding: 10px; margin: 5px 0;
+            background: #0f3460; color: white;
+            border: 1px solid #00d4ff; border-radius: 10px;
+            font-size: 14px; box-sizing: border-box;
+        }
+        .input-adres::placeholder { color: #aaa; }
+        #punkty-posrednie { margin: 5px 0; }
+        .btn-routing { display: block; width: 100%; margin: 5px 0; padding: 10px; border: none; border-radius: 10px; font-size: 14px; cursor: pointer; }
+        #btn-dodaj-posredni { background: #2980b9; color: white; }
+        #btn-wyznacz-trase { background: #8e44ad; color: white; font-weight: bold; }
+        #btn-wyczysc-trase { background: #e74c3c; color: white; }
+        #btn-zamknij-routing { background: #444; color: white; }
+        #status-routing { font-size: 12px; color: #ffcc00; margin: 5px 0; min-height: 20px; }
     </style>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
     <h1>Aplikacja Świateł Kraków</h1>
-    <div id="info-edycja">✏️ Tryb edycji trasy — kliknij sygnalizatory aby dodać/usunąć z trasy. Kliknij "Zapisz zmiany" gdy skończysz.</div>
+    <div id="info-edycja">✏️ Tryb edycji trasy — kliknij sygnalizatory aby dodać/usunąć. Kliknij "Zapisz zmiany" gdy skończysz.</div>
     <div id="gorny-pasek">
         <button class="btn-top" id="btn-trasa" onclick="przełączTrybZaznaczania()">🗺️ Zaznacz trasę</button>
         <button class="btn-top" id="btn-zapisz-trase" onclick="zapiszTrase()">💾 Zapisz trasę</button>
         <button class="btn-top" id="btn-wybierz-trase" onclick="otworzModalTras()">📋 Moje trasy</button>
+        <button class="btn-top" id="btn-wyznacz" onclick="otworzModalRouting()">🧭 Wyznacz trasę</button>
     </div>
     <div id="mapa"></div>
 
+    <!-- Modal tras -->
     <div id="modal-trasy">
         <div id="modal-zawartosc">
             <h3>📋 Moje trasy</h3>
             <div id="lista-tras"></div>
             <button id="btn-nowa-trasa" onclick="nowaTrasa()">➕ Nowa trasa</button>
-<button onclick="eksportujTrasy()" style="display:block;width:100%;margin:5px 0;padding:10px;background:#8e44ad;color:white;border:none;border-radius:10px;font-size:14px;cursor:pointer;">📤 Eksportuj trasy</button>
-<button onclick="importujTrasy()" style="display:block;width:100%;margin:5px 0;padding:10px;background:#d35400;color:white;border:none;border-radius:10px;font-size:14px;cursor:pointer;">📥 Importuj trasy</button>
-<button id="btn-zamknij-modal" onclick="zamknijModal()">Zamknij</button>
+            <button onclick="eksportujTrasy()" style="display:block;width:100%;margin:5px 0;padding:10px;background:#8e44ad;color:white;border:none;border-radius:10px;font-size:14px;cursor:pointer;">📤 Eksportuj trasy</button>
+            <button onclick="importujTrasy()" style="display:block;width:100%;margin:5px 0;padding:10px;background:#d35400;color:white;border:none;border-radius:10px;font-size:14px;cursor:pointer;">📥 Importuj trasy</button>
+            <button id="btn-zamknij-modal" onclick="zamknijModal()">Zamknij</button>
+        </div>
+    </div>
+
+    <!-- Modal routing -->
+    <div id="modal-routing">
+        <div id="modal-routing-zawartosc">
+            <h3>🧭 Wyznacz trasę</h3>
+            <input class="input-adres" id="adres-start" placeholder="📍 Punkt startowy (np. Wielicka 1, Kraków)"/>
+            <div id="punkty-posrednie"></div>
+            <button class="btn-routing" id="btn-dodaj-posredni" onclick="dodajPunktPosredni()">➕ Dodaj punkt pośredni</button>
+            <input class="input-adres" id="adres-koniec" placeholder="🏁 Punkt końcowy (np. Reymonta 22, Kraków)"/>
+            <div id="status-routing"></div>
+            <button class="btn-routing" id="btn-wyznacz-trase" onclick="wyznaczTrase()">🧭 Wyznacz i zaznacz światła</button>
+            <button class="btn-routing" id="btn-wyczysc-trase" onclick="wyczyscTrase()">🗑️ Wyczyść trasę</button>
+            <button class="btn-routing" id="btn-zamknij-routing" onclick="zamknijModalRouting()">Zamknij</button>
         </div>
     </div>
 
@@ -124,6 +171,8 @@
         let trybEdycji = false;
         let edytowanaNazwaTrasy = null;
         let warstwyMarkerow = {};
+        let liniaTrasy = null;
+        let licznikPosrednich = 0;
 
         const daneSkrzyzowan = {
             'wielicka_teligi': {
@@ -134,30 +183,166 @@
                 ostatniKolorKorekty: null
             }
         };
-function eksportujTrasy() {
-    const trasy = wczytajTrasy();
-    if (Object.keys(trasy).length === 0) {
-        alert('Brak tras do eksportu!');
-        return;
-    }
-    const kod = btoa(JSON.stringify(trasy));
-    prompt('Skopiuj ten kod i wklej na innym urządzeniu:', kod);
-}
 
-function importujTrasy() {
-    const kod = prompt('Wklej kod trasy:');
-    if (!kod) return;
-    try {
-        const trasy = JSON.parse(atob(kod));
-        const istniejace = wczytajTrasy();
-        const polaczone = Object.assign(istniejace, trasy);
-        zapiszTrasy(polaczone);
-        alert('✅ Trasy zaimportowane pomyślnie!');
-        otworzModalTras();
-    } catch(e) {
-        alert('❌ Błędny kod — spróbuj ponownie');
-    }
-}
+        // Routing
+        function otworzModalRouting() {
+            document.getElementById('modal-routing').classList.add('aktywny');
+        }
+
+        function zamknijModalRouting() {
+            document.getElementById('modal-routing').classList.remove('aktywny');
+        }
+
+        function dodajPunktPosredni() {
+            licznikPosrednich++;
+            const div = document.createElement('div');
+            div.id = 'posredni-' + licznikPosrednich;
+            div.style.display = 'flex';
+            div.style.gap = '5px';
+            div.style.margin = '5px 0';
+            div.innerHTML = `
+                <input class="input-adres" style="flex:1" placeholder="📌 Punkt pośredni ${licznikPosrednich}" id="adres-posredni-${licznikPosrednich}"/>
+                <button onclick="document.getElementById('posredni-${licznikPosrednich}').remove()" style="padding:5px 10px;background:#e74c3c;color:white;border:none;border-radius:10px;cursor:pointer;">✕</button>
+            `;
+            document.getElementById('punkty-posrednie').appendChild(div);
+        }
+
+        async function geokoduj(adres) {
+            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(adres)}&limit=1&countrycodes=pl`;
+            const resp = await fetch(url, { headers: { 'Accept-Language': 'pl' } });
+            const dane = await resp.json();
+            if (dane.length === 0) throw new Error('Nie znaleziono: ' + adres);
+            return { lat: parseFloat(dane[0].lat), lng: parseFloat(dane[0].lon) };
+        }
+
+        function dystans(lat1, lng1, lat2, lng2) {
+            const R = 6371000;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLng = (lng2 - lng1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLng/2) * Math.sin(dLng/2);
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        }
+
+        function dystansDoLinii(pLat, pLng, aLat, aLng, bLat, bLng) {
+            const dx = bLng - aLng;
+            const dy = bLat - aLat;
+            if (dx === 0 && dy === 0) return dystans(pLat, pLng, aLat, aLng);
+            const t = Math.max(0, Math.min(1, ((pLng - aLng) * dx + (pLat - aLat) * dy) / (dx * dx + dy * dy)));
+            return dystans(pLat, pLng, aLat + t * dy, aLng + t * dx);
+        }
+
+        function czyNaTransie(lat, lng, wspolrzedne, promien) {
+            for (let i = 0; i < wspolrzedne.length - 1; i++) {
+                const d = dystansDoLinii(lat, lng,
+                    wspolrzedne[i][0], wspolrzedne[i][1],
+                    wspolrzedne[i+1][0], wspolrzedne[i+1][1]);
+                if (d <= promien) return true;
+            }
+            return false;
+        }
+
+        async function wyznaczTrase() {
+            const status = document.getElementById('status-routing');
+            status.innerText = '⏳ Szukam adresów...';
+
+            try {
+                const adresStart = document.getElementById('adres-start').value;
+                const adresKoniec = document.getElementById('adres-koniec').value;
+
+                if (!adresStart || !adresKoniec) {
+                    status.innerText = '❌ Podaj punkt startowy i końcowy!';
+                    return;
+                }
+
+                // Geokodowanie
+                const punktStart = await geokoduj(adresStart);
+                const punktKoniec = await geokoduj(adresKoniec);
+
+                // Punkty pośrednie
+                const posrednie = [];
+                for (let i = 1; i <= licznikPosrednich; i++) {
+                    const el = document.getElementById('adres-posredni-' + i);
+                    if (el && el.value) {
+                        const p = await geokoduj(el.value);
+                        posrednie.push(p);
+                    }
+                }
+
+                status.innerText = '⏳ Wyznaczam trasę...';
+
+                // Buduj URL OSRM
+                let wspolrzedneURL = `${punktStart.lng},${punktStart.lat}`;
+                posrednie.forEach(p => { wspolrzedneURL += `;${p.lng},${p.lat}`; });
+                wspolrzedneURL += `;${punktKoniec.lng},${punktKoniec.lat}`;
+
+                const osrmURL = `https://router.project-osrm.org/route/v1/driving/${wspolrzedneURL}?overview=full&geometries=geojson`;
+                const resp = await fetch(osrmURL);
+                const dane = await resp.json();
+
+                if (dane.code !== 'Ok') {
+                    status.innerText = '❌ Nie udało się wyznaczyć trasy';
+                    return;
+                }
+
+                // Rysuj trasę na mapie
+                if (liniaTrasy) mapa.removeLayer(liniaTrasy);
+                const wspolrzedne = dane.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+                liniaTrasy = L.polyline(wspolrzedne, {
+                    color: '#8e44ad',
+                    weight: 5,
+                    opacity: 0.8
+                }).addTo(mapa);
+                mapa.fitBounds(liniaTrasy.getBounds());
+
+                // Zaznacz sygnalizatory na trasie
+                status.innerText = '⏳ Zaznaczam sygnalizatory...';
+                let liczba = 0;
+                const promien = 35; // metry
+
+                Object.keys(warstwyMarkerow).forEach(id => {
+                    const marker = warstwyMarkerow[id];
+                    const latLng = marker.layer.getLatLng();
+                    const naT = czyNaTransie(latLng.lat, latLng.lng, wspolrzedne, promien);
+
+                    if (naT) {
+                        marker.naTransie = true;
+                        marker.layer.setStyle({ fillColor: "#00cc00" });
+                        liczba++;
+                    } else {
+                        marker.naTransie = false;
+                        const czyReczny = !id.startsWith('osm_');
+                        marker.layer.setStyle({ fillColor: czyReczny ? "#ff0000" : "#ffcc00" });
+                    }
+                });
+
+                const czas = Math.round(dane.routes[0].duration / 60);
+                const dystansKm = (dane.routes[0].distance / 1000).toFixed(1);
+                status.innerText = `✅ Trasa: ${dystansKm} km, ~${czas} min | Sygnalizatorów: ${liczba}`;
+
+            } catch(e) {
+                status.innerText = '❌ Błąd: ' + e.message;
+            }
+        }
+
+        function wyczyscTrase() {
+            if (liniaTrasy) {
+                mapa.removeLayer(liniaTrasy);
+                liniaTrasy = null;
+            }
+            Object.keys(warstwyMarkerow).forEach(id => {
+                warstwyMarkerow[id].naTransie = false;
+                const czyReczny = !id.startsWith('osm_');
+                warstwyMarkerow[id].layer.setStyle({ fillColor: czyReczny ? "#ff0000" : "#ffcc00" });
+            });
+            document.getElementById('status-routing').innerText = '';
+            document.getElementById('adres-start').value = '';
+            document.getElementById('adres-koniec').value = '';
+            document.getElementById('punkty-posrednie').innerHTML = '';
+            licznikPosrednich = 0;
+        }
+
         // System tras
         function wczytajTrasy() {
             const dane = localStorage.getItem('trasy');
@@ -166,6 +351,31 @@ function importujTrasy() {
 
         function zapiszTrasy(trasy) {
             localStorage.setItem('trasy', JSON.stringify(trasy));
+        }
+
+        function eksportujTrasy() {
+            const trasy = wczytajTrasy();
+            if (Object.keys(trasy).length === 0) {
+                alert('Brak tras do eksportu!');
+                return;
+            }
+            const kod = btoa(JSON.stringify(trasy));
+            prompt('Skopiuj ten kod i wklej na innym urządzeniu:', kod);
+        }
+
+        function importujTrasy() {
+            const kod = prompt('Wklej kod trasy:');
+            if (!kod) return;
+            try {
+                const trasy = JSON.parse(atob(kod));
+                const istniejace = wczytajTrasy();
+                const polaczone = Object.assign(istniejace, trasy);
+                zapiszTrasy(polaczone);
+                alert('✅ Trasy zaimportowane pomyślnie!');
+                otworzModalTras();
+            } catch(e) {
+                alert('❌ Błędny kod — spróbuj ponownie');
+            }
         }
 
         function pobierzZaznaczone() {
@@ -178,7 +388,6 @@ function importujTrasy() {
                 alert('Nie zaznaczono żadnych sygnalizatorów!');
                 return;
             }
-
             let nazwa;
             if (trybEdycji && edytowanaNazwaTrasy) {
                 nazwa = edytowanaNazwaTrasy;
@@ -186,12 +395,10 @@ function importujTrasy() {
                 nazwa = prompt('Podaj nazwę trasy:', 'Trasa nr ' + (Object.keys(wczytajTrasy()).length + 1));
                 if (!nazwa) return;
             }
-
             const trasy = wczytajTrasy();
             trasy[nazwa] = punkty;
             zapiszTrasy(trasy);
             alert('✅ Trasa "' + nazwa + '" zapisana! (' + punkty.length + ' sygnalizatorów)');
-
             wyjdzZTrybuZaznaczania();
         }
 
@@ -200,6 +407,7 @@ function importujTrasy() {
             trybEdycji = false;
             edytowanaNazwaTrasy = null;
             document.getElementById('btn-zapisz-trase').style.display = 'none';
+            document.getElementById('btn-zapisz-trase').innerText = '💾 Zapisz trasę';
             document.getElementById('btn-trasa').innerText = '🗺️ Zaznacz trasę';
             document.getElementById('btn-trasa').style.background = '#444';
             document.getElementById('btn-trasa').style.color = 'white';
@@ -210,45 +418,37 @@ function importujTrasy() {
             const trasy = wczytajTrasy();
             const lista = document.getElementById('lista-tras');
             lista.innerHTML = '';
-
             if (Object.keys(trasy).length === 0) {
                 lista.innerHTML = '<p style="color:#aaa">Brak zapisanych tras</p>';
             } else {
                 Object.keys(trasy).forEach(nazwa => {
                     const div = document.createElement('div');
                     div.className = 'trasa-row';
-
                     const btn = document.createElement('button');
                     btn.className = 'btn-trasa-lista';
                     btn.innerText = '🗺️ ' + nazwa + ' (' + trasy[nazwa].length + ' pkt)';
                     btn.onclick = () => { zaladujTrase(nazwa); zamknijModal(); };
-
                     const btnEdytuj = document.createElement('button');
                     btnEdytuj.className = 'btn-trasa-edytuj';
                     btnEdytuj.innerText = '✏️';
-                    btnEdytuj.title = 'Edytuj trasę';
                     btnEdytuj.onclick = () => { edytujTrase(nazwa); zamknijModal(); };
-
                     const btnUsun = document.createElement('button');
                     btnUsun.className = 'btn-trasa-usun';
                     btnUsun.innerText = '🗑️';
-                    btnUsun.title = 'Usuń trasę';
                     btnUsun.onclick = () => {
                         if (confirm('Usunąć trasę "' + nazwa + '"?')) {
-                            const trasy2 = wczytajTrasy();
-                            delete trasy2[nazwa];
-                            zapiszTrasy(trasy2);
+                            const t = wczytajTrasy();
+                            delete t[nazwa];
+                            zapiszTrasy(t);
                             otworzModalTras();
                         }
                     };
-
                     div.appendChild(btn);
                     div.appendChild(btnEdytuj);
                     div.appendChild(btnUsun);
                     lista.appendChild(div);
                 });
             }
-
             document.getElementById('modal-trasy').classList.add('aktywny');
         }
 
@@ -274,7 +474,6 @@ function importujTrasy() {
         }
 
         function edytujTrase(nazwa) {
-            // Załaduj trasę i wejdź w tryb edycji
             zaladujTrase(nazwa);
             trybZaznaczania = true;
             trybEdycji = true;
@@ -290,17 +489,13 @@ function importujTrasy() {
         function zaladujTrase(nazwa) {
             const trasy = wczytajTrasy();
             const punkty = trasy[nazwa];
-
             Object.keys(warstwyMarkerow).forEach(id => {
                 warstwyMarkerow[id].naTransie = false;
                 const czyReczny = !id.startsWith('osm_');
                 if (warstwyMarkerow[id].layer) {
-                    warstwyMarkerow[id].layer.setStyle({
-                        fillColor: czyReczny ? "#ff0000" : "#ffcc00"
-                    });
+                    warstwyMarkerow[id].layer.setStyle({ fillColor: czyReczny ? "#ff0000" : "#ffcc00" });
                 }
             });
-
             punkty.forEach(id => {
                 if (warstwyMarkerow[id]) {
                     warstwyMarkerow[id].naTransie = true;
@@ -507,9 +702,7 @@ function importujTrasy() {
             layer.on('click', function() {
                 if (trybZaznaczania) {
                     warstwyMarkerow[id].naTransie = !warstwyMarkerow[id].naTransie;
-                    layer.setStyle({
-                        fillColor: warstwyMarkerow[id].naTransie ? "#00cc00" : "#ff0000"
-                    });
+                    layer.setStyle({ fillColor: warstwyMarkerow[id].naTransie ? "#00cc00" : "#ff0000" });
                 } else {
                     otworzPanel({ id, nazwa });
                 }
@@ -535,9 +728,7 @@ function importujTrasy() {
                         layer.on('click', () => {
                             if (trybZaznaczania) {
                                 warstwyMarkerow[id].naTransie = !warstwyMarkerow[id].naTransie;
-                                layer.setStyle({
-                                    fillColor: warstwyMarkerow[id].naTransie ? "#00cc00" : "#ffcc00"
-                                });
+                                layer.setStyle({ fillColor: warstwyMarkerow[id].naTransie ? "#00cc00" : "#ffcc00" });
                             } else {
                                 otworzPanel({ id, nazwa });
                             }

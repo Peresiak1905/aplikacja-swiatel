@@ -47,48 +47,26 @@
         }
         #modal-trasy.aktywny { display: flex; }
         #modal-zawartosc {
-            background: #16213e;
-            border: 2px solid #00d4ff;
-            border-radius: 15px;
-            padding: 20px;
-            width: 300px;
-            text-align: center;
+            background: #16213e; border: 2px solid #00d4ff;
+            border-radius: 15px; padding: 20px;
+            width: 320px; text-align: center;
+            max-height: 80vh; overflow-y: auto;
         }
         #modal-zawartosc h3 { color: #00d4ff; margin: 0 0 15px 0; }
-        .btn-trasa-lista {
-            display: block; width: 100%;
-            margin: 5px 0; padding: 10px;
-            background: #2980b9; color: white;
-            border: none; border-radius: 10px;
-            font-size: 14px; cursor: pointer;
-        }
-        .btn-trasa-lista:hover { background: #3498db; }
-        .btn-trasa-usun {
-            background: #e74c3c; color: white;
-            border: none; border-radius: 5px;
-            padding: 3px 8px; cursor: pointer;
-            font-size: 12px; margin-left: 5px;
-        }
-        #btn-nowa-trasa {
-            display: block; width: 100%;
-            margin: 10px 0 5px 0; padding: 10px;
-            background: #27ae60; color: white;
-            border: none; border-radius: 10px;
-            font-size: 14px; cursor: pointer;
-        }
-        #btn-zamknij-modal {
-            display: block; width: 100%;
-            margin: 5px 0; padding: 8px;
-            background: #444; color: white;
-            border: none; border-radius: 10px;
-            font-size: 13px; cursor: pointer;
-        }
+        .trasa-row { display: flex; align-items: center; margin-bottom: 8px; gap: 5px; }
+        .btn-trasa-lista { flex: 1; padding: 10px; background: #2980b9; color: white; border: none; border-radius: 10px; font-size: 13px; cursor: pointer; text-align: left; }
+        .btn-trasa-edytuj { background: #f39c12; color: white; border: none; border-radius: 5px; padding: 5px 8px; cursor: pointer; font-size: 12px; }
+        .btn-trasa-usun { background: #e74c3c; color: white; border: none; border-radius: 5px; padding: 5px 8px; cursor: pointer; font-size: 12px; }
+        #btn-nowa-trasa { display: block; width: 100%; margin: 10px 0 5px 0; padding: 10px; background: #27ae60; color: white; border: none; border-radius: 10px; font-size: 14px; cursor: pointer; }
+        #btn-zamknij-modal { display: block; width: 100%; margin: 5px 0; padding: 8px; background: #444; color: white; border: none; border-radius: 10px; font-size: 13px; cursor: pointer; }
+        #info-edycja { display: none; text-align: center; padding: 5px; background: #f39c12; color: #1a1a2e; font-size: 12px; font-weight: bold; }
     </style>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
     <h1>Aplikacja Świateł Kraków</h1>
+    <div id="info-edycja">✏️ Tryb edycji trasy — kliknij sygnalizatory aby dodać/usunąć z trasy. Kliknij "Zapisz zmiany" gdy skończysz.</div>
     <div id="gorny-pasek">
         <button class="btn-top" id="btn-trasa" onclick="przełączTrybZaznaczania()">🗺️ Zaznacz trasę</button>
         <button class="btn-top" id="btn-zapisz-trase" onclick="zapiszTrase()">💾 Zapisz trasę</button>
@@ -96,7 +74,6 @@
     </div>
     <div id="mapa"></div>
 
-    <!-- Modal tras -->
     <div id="modal-trasy">
         <div id="modal-zawartosc">
             <h3>📋 Moje trasy</h3>
@@ -142,8 +119,19 @@
         let ostatnioMowiono = null;
         let trybPomiaru = false;
         let trybZaznaczania = false;
-        let aktualnaTrasa = null;
+        let trybEdycji = false;
+        let edytowanaNazwaTrasy = null;
         let warstwyMarkerow = {};
+
+        const daneSkrzyzowan = {
+            'wielicka_teligi': {
+                startZielone: { h: 13, m: 50, s: 16 },
+                czasZielone: 15,
+                czasCzerwone: 96,
+                ostatniaKorekta: null,
+                ostatniKolorKorekty: null
+            }
+        };
 
         // System tras
         function wczytajTrasy() {
@@ -155,33 +143,42 @@
             localStorage.setItem('trasy', JSON.stringify(trasy));
         }
 
+        function pobierzZaznaczone() {
+            return Object.keys(warstwyMarkerow).filter(id => warstwyMarkerow[id].naTransie);
+        }
+
         function zapiszTrase() {
-            const nazwa = prompt('Podaj nazwę trasy:', 'Trasa nr ' + (Object.keys(wczytajTrasy()).length + 1));
-            if (!nazwa) return;
-
-            const trasy = wczytajTrasy();
-            const punkty = [];
-
-            Object.keys(warstwyMarkerow).forEach(id => {
-                if (warstwyMarkerow[id].naTransie) {
-                    punkty.push(id);
-                }
-            });
-
+            const punkty = pobierzZaznaczone();
             if (punkty.length === 0) {
                 alert('Nie zaznaczono żadnych sygnalizatorów!');
                 return;
             }
 
+            let nazwa;
+            if (trybEdycji && edytowanaNazwaTrasy) {
+                nazwa = edytowanaNazwaTrasy;
+            } else {
+                nazwa = prompt('Podaj nazwę trasy:', 'Trasa nr ' + (Object.keys(wczytajTrasy()).length + 1));
+                if (!nazwa) return;
+            }
+
+            const trasy = wczytajTrasy();
             trasy[nazwa] = punkty;
             zapiszTrasy(trasy);
             alert('✅ Trasa "' + nazwa + '" zapisana! (' + punkty.length + ' sygnalizatorów)');
 
+            wyjdzZTrybuZaznaczania();
+        }
+
+        function wyjdzZTrybuZaznaczania() {
+            trybZaznaczania = false;
+            trybEdycji = false;
+            edytowanaNazwaTrasy = null;
             document.getElementById('btn-zapisz-trase').style.display = 'none';
             document.getElementById('btn-trasa').innerText = '🗺️ Zaznacz trasę';
             document.getElementById('btn-trasa').style.background = '#444';
             document.getElementById('btn-trasa').style.color = 'white';
-            trybZaznaczania = false;
+            document.getElementById('info-edycja').style.display = 'none';
         }
 
         function otworzModalTras() {
@@ -194,27 +191,34 @@
             } else {
                 Object.keys(trasy).forEach(nazwa => {
                     const div = document.createElement('div');
-                    div.style.display = 'flex';
-                    div.style.alignItems = 'center';
-                    div.style.marginBottom = '5px';
+                    div.className = 'trasa-row';
 
                     const btn = document.createElement('button');
                     btn.className = 'btn-trasa-lista';
                     btn.innerText = '🗺️ ' + nazwa + ' (' + trasy[nazwa].length + ' pkt)';
                     btn.onclick = () => { zaladujTrase(nazwa); zamknijModal(); };
 
+                    const btnEdytuj = document.createElement('button');
+                    btnEdytuj.className = 'btn-trasa-edytuj';
+                    btnEdytuj.innerText = '✏️';
+                    btnEdytuj.title = 'Edytuj trasę';
+                    btnEdytuj.onclick = () => { edytujTrase(nazwa); zamknijModal(); };
+
                     const btnUsun = document.createElement('button');
                     btnUsun.className = 'btn-trasa-usun';
                     btnUsun.innerText = '🗑️';
+                    btnUsun.title = 'Usuń trasę';
                     btnUsun.onclick = () => {
                         if (confirm('Usunąć trasę "' + nazwa + '"?')) {
-                            delete trasy[nazwa];
-                            zapiszTrasy(trasy);
+                            const trasy2 = wczytajTrasy();
+                            delete trasy2[nazwa];
+                            zapiszTrasy(trasy2);
                             otworzModalTras();
                         }
                     };
 
                     div.appendChild(btn);
+                    div.appendChild(btnEdytuj);
                     div.appendChild(btnUsun);
                     lista.appendChild(div);
                 });
@@ -229,70 +233,69 @@
 
         function nowaTrasa() {
             zamknijModal();
-            // Wyczyść obecne zaznaczenia
             Object.keys(warstwyMarkerow).forEach(id => {
-                if (warstwyMarkerow[id].naTransie) {
-                    warstwyMarkerow[id].naTransie = false;
-                    warstwyMarkerow[id].layer.setStyle({ fillColor: "#ffcc00" });
-                }
+                warstwyMarkerow[id].naTransie = false;
+                const czyReczny = !id.startsWith('osm_');
+                warstwyMarkerow[id].layer.setStyle({ fillColor: czyReczny ? "#ff0000" : "#ffcc00" });
             });
             trybZaznaczania = true;
+            trybEdycji = false;
+            edytowanaNazwaTrasy = null;
             document.getElementById('btn-trasa').innerText = '✅ Zaznaczanie WŁ';
             document.getElementById('btn-trasa').style.background = '#00d4ff';
             document.getElementById('btn-trasa').style.color = '#1a1a2e';
             document.getElementById('btn-zapisz-trase').style.display = 'inline-block';
+            document.getElementById('info-edycja').style.display = 'none';
+        }
+
+        function edytujTrase(nazwa) {
+            // Załaduj trasę i wejdź w tryb edycji
+            zaladujTrase(nazwa);
+            trybZaznaczania = true;
+            trybEdycji = true;
+            edytowanaNazwaTrasy = nazwa;
+            document.getElementById('btn-trasa').innerText = '✏️ Edycja: ' + nazwa;
+            document.getElementById('btn-trasa').style.background = '#f39c12';
+            document.getElementById('btn-trasa').style.color = '#1a1a2e';
+            document.getElementById('btn-zapisz-trase').innerText = '💾 Zapisz zmiany';
+            document.getElementById('btn-zapisz-trase').style.display = 'inline-block';
+            document.getElementById('info-edycja').style.display = 'block';
         }
 
         function zaladujTrase(nazwa) {
             const trasy = wczytajTrasy();
             const punkty = trasy[nazwa];
 
-            // Wyczyść obecne zaznaczenia
             Object.keys(warstwyMarkerow).forEach(id => {
                 warstwyMarkerow[id].naTransie = false;
+                const czyReczny = !id.startsWith('osm_');
                 if (warstwyMarkerow[id].layer) {
-                    warstwyMarkerow[id].layer.setStyle({ fillColor: "#ffcc00" });
+                    warstwyMarkerow[id].layer.setStyle({
+                        fillColor: czyReczny ? "#ff0000" : "#ffcc00"
+                    });
                 }
             });
 
-            // Zaznacz punkty trasy
             punkty.forEach(id => {
                 if (warstwyMarkerow[id]) {
                     warstwyMarkerow[id].naTransie = true;
                     warstwyMarkerow[id].layer.setStyle({ fillColor: "#00cc00" });
                 }
             });
-
-            aktualnaTrasa = nazwa;
-            alert('✅ Załadowano trasę "' + nazwa + '"');
         }
 
         function przełączTrybZaznaczania() {
-            trybZaznaczania = !trybZaznaczania;
-            const btn = document.getElementById('btn-trasa');
-            const btnZapisz = document.getElementById('btn-zapisz-trase');
             if (trybZaznaczania) {
-                btn.innerText = '✅ Zaznaczanie WŁ';
-                btn.style.background = '#00d4ff';
-                btn.style.color = '#1a1a2e';
-                btnZapisz.style.display = 'inline-block';
+                wyjdzZTrybuZaznaczania();
+                Object.keys(warstwyMarkerow).forEach(id => {
+                    warstwyMarkerow[id].naTransie = false;
+                    const czyReczny = !id.startsWith('osm_');
+                    warstwyMarkerow[id].layer.setStyle({ fillColor: czyReczny ? "#ff0000" : "#ffcc00" });
+                });
             } else {
-                btn.innerText = '🗺️ Zaznacz trasę';
-                btn.style.background = '#444';
-                btn.style.color = 'white';
-                btnZapisz.style.display = 'none';
+                nowaTrasa();
             }
         }
-
-        const daneSkrzyzowan = {
-            'wielicka_teligi': {
-                startZielone: { h: 13, m: 50, s: 16 },
-                czasZielone: 15,
-                czasCzerwone: 96,
-                ostatniaKorekta: null,
-                ostatniKolorKorekty: null
-            }
-        };
 
         function koryguj(kolor) {
             const dane = daneSkrzyzowan[aktualneSkrzyzowanie.id];
@@ -406,13 +409,13 @@
                 aktualizuj();
                 interwał = setInterval(aktualizuj, 1000);
             } else {
-    document.getElementById('przyciski-korekty').style.display = 'none';
-    document.getElementById('swiatlo').innerText = '⚫';
-    document.getElementById('odliczanie').innerText = 'Zmierz światła';
-    document.getElementById('opis').innerText = 'Kliknij gdy zmienia się światło';
-    document.getElementById('dokladnosc').innerText = '📍 Stań przy skrzyżowaniu i zacznij mierzyć';
-    document.getElementById('przyciski-pomiaru').style.display = 'block';
-    trybPomiaru = true;
+                document.getElementById('przyciski-korekty').style.display = 'none';
+                document.getElementById('swiatlo').innerText = '⚫';
+                document.getElementById('odliczanie').innerText = 'Zmierz światła';
+                document.getElementById('opis').innerText = 'Kliknij gdy zmienia się światło';
+                document.getElementById('dokladnosc').innerText = '📍 Stań przy skrzyżowaniu i zacznij mierzyć';
+                document.getElementById('przyciski-pomiaru').style.display = 'block';
+                trybPomiaru = true;
             }
         }
 
@@ -472,24 +475,27 @@
             }
         });
 
-        // Funkcja dodawania markera ręcznego
         function dodajMarker(lat, lng, id, nazwa) {
             const layer = L.circleMarker([lat, lng], {
                 radius: 10, fillColor: "#ff0000", color: "#fff", weight: 2, fillOpacity: 1
             }).addTo(mapa);
             layer.on('click', function() {
-                if (trybZaznaczania) return;
-                otworzPanel({ id, nazwa });
+                if (trybZaznaczania) {
+                    warstwyMarkerow[id].naTransie = !warstwyMarkerow[id].naTransie;
+                    layer.setStyle({
+                        fillColor: warstwyMarkerow[id].naTransie ? "#00cc00" : "#ff0000"
+                    });
+                } else {
+                    otworzPanel({ id, nazwa });
+                }
             });
             warstwyMarkerow[id] = { layer, naTransie: false };
         }
 
-        // Ręczne markery
         dodajMarker(50.03667663430466, 19.94068768665933, 'mateczny_kalwaryjska', 'Mateczny / Kalwaryjska');
         dodajMarker(50.017316906572326, 19.991255815131844, 'wielicka_facimiech', 'Wielicka / Facimiech');
         dodajMarker(50.01420215172329, 19.999269960360717, 'wielicka_teligi', 'Wielicka / Teligi');
 
-        // Pozostałe sygnalizatory z GeoJSON
         fetch('sygnalizatory.geojson')
             .then(r => r.json())
             .then(data => {

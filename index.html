@@ -14,11 +14,7 @@
             flex-direction: column;
             align-items: center;
         }
-        h1 {
-            margin-top: 20px;
-            font-size: 22px;
-            color: #00d4ff;
-        }
+        h1 { margin-top: 20px; font-size: 22px; color: #00d4ff; }
         #mapa { width: 100%; height: 50vh; }
         #panel {
             display: none;
@@ -56,6 +52,17 @@
             font-size: 14px;
             cursor: pointer;
         }
+        #btn-mowa {
+            margin: 10px 5px;
+            padding: 10px 20px;
+            background: #9b59b6;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: bold;
+        }
     </style>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -68,6 +75,7 @@
         <div id="swiatlo">⚫</div>
         <div id="odliczanie">--</div>
         <div id="opis">Ładowanie...</div>
+        <button id="btn-mowa" onclick="wlaczMowe()">🔊 Włącz komunikaty głosowe</button>
         <div id="log-pomiarow"></div>
         <div>
             <button class="btn-pomiar" id="btn-czerwone" onclick="zapiszZmiane('czerwone')">🔴 Zapaliło się CZERWONE</button>
@@ -86,8 +94,9 @@
         let aktualneSkrzyzowanie = null;
         let pomiary = [];
         let interwał = null;
+        let mowaWlaczona = false;
+        let ostatnioMowiono = null;
 
-        // Skrzyżowania z zapisanymi danymi
         const daneSkrzyzowan = {
             'wielicka_teligi': {
                 startZielone: { h: 9, m: 26, s: 16 },
@@ -95,6 +104,33 @@
                 czasCzerwone: 90
             }
         };
+
+        function wlaczMowe() {
+            mowaWlaczona = !mowaWlaczona;
+            const btn = document.getElementById('btn-mowa');
+            if (mowaWlaczona) {
+                btn.innerText = '🔊 Komunikaty głosowe: WŁ';
+                btn.style.background = '#27ae60';
+                // Test głosu
+                mow('Komunikaty głosowe włączone');
+            } else {
+                btn.innerText = '🔇 Komunikaty głosowe: WYŁ';
+                btn.style.background = '#7f8c8d';
+                ostatnioMowiono = null;
+            }
+        }
+
+        function mow(tekst) {
+            if (!mowaWlaczona) return;
+            if (ostatnioMowiono === tekst) return;
+            ostatnioMowiono = tekst;
+            window.speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(tekst);
+            msg.lang = 'pl-PL';
+            msg.volume = 1;
+            msg.rate = 0.9;
+            window.speechSynthesis.speak(msg);
+        }
 
         function obliczStan(dane) {
             const teraz = new Date();
@@ -110,37 +146,54 @@
             const pozycja = sekundy % cykl;
 
             if (pozycja < dane.czasZielone) {
-                return { kolor: "zielone", pozostalo: dane.czasZielone - pozycja };
+                return { kolor: 'zielone', pozostalo: dane.czasZielone - pozycja };
             } else {
-                return { kolor: "czerwone", pozostalo: cykl - pozycja };
+                return { kolor: 'czerwone', pozostalo: cykl - pozycja };
             }
         }
 
         function otworzPanel(skrzyzowanie) {
             aktualneSkrzyzowanie = skrzyzowanie;
             pomiary = [];
+            ostatnioMowiono = null;
             document.getElementById('panel').style.display = 'block';
             document.getElementById('nazwa-skrzyzowania').innerText = skrzyzowanie.nazwa;
             document.getElementById('log-pomiarow').innerHTML = '';
             document.getElementById('btn-zapisz').style.display = 'none';
+            document.getElementById('btn-mowa').innerText = '🔊 Włącz komunikaty głosowe';
+            document.getElementById('btn-mowa').style.background = '#9b59b6';
+            mowaWlaczona = false;
 
             if (interwał) clearInterval(interwał);
 
             const dane = daneSkrzyzowan[skrzyzowanie.id];
 
             if (dane) {
-                // Mamy dane — pokazuj odliczanie na żywo
-                document.getElementById('opis').innerText = 'Odliczanie na żywo';
                 function aktualizuj() {
                     const stan = obliczStan(dane);
                     document.getElementById('swiatlo').innerText = stan.kolor === 'zielone' ? '🟢' : '🔴';
                     document.getElementById('odliczanie').innerText = stan.pozostalo + ' sek';
-                    document.getElementById('opis').innerText = stan.kolor === 'zielone' ? '🚗 Jedź! Zielone jeszcze przez:' : '✋ Poczekaj. Czerwone jeszcze przez:';
+                    document.getElementById('opis').innerText = stan.kolor === 'zielone'
+                        ? '🚗 Jedź! Zielone jeszcze przez:'
+                        : '✋ Poczekaj. Czerwone jeszcze przez:';
+
+                    // Komunikaty głosowe
+                    if (stan.kolor === 'czerwone' && stan.pozostalo === 10) {
+                        mow('Za 10 sekund zielone');
+                    }
+                    if (stan.kolor === 'czerwone' && stan.pozostalo === 5) {
+                        mow('Za 5 sekund zmiana światła');
+                    }
+                    if (stan.kolor === 'czerwone' && stan.pozostalo === 3) {
+                        mow('Za 3 sekundy zielone');
+                    }
+                    if (stan.kolor === 'zielone' && stan.pozostalo === 3) {
+                        mow('Uwaga, za 3 sekundy czerwone');
+                    }
                 }
                 aktualizuj();
                 interwał = setInterval(aktualizuj, 1000);
             } else {
-                // Brak danych — tryb pomiaru
                 document.getElementById('swiatlo').innerText = '⚫';
                 document.getElementById('odliczanie').innerText = '--';
                 document.getElementById('opis').innerText = 'Kliknij gdy zmienia się światło';
@@ -183,6 +236,8 @@
         function zamknijPanel() {
             document.getElementById('panel').style.display = 'none';
             if (interwał) clearInterval(interwał);
+            window.speechSynthesis.cancel();
+            mowaWlaczona = false;
         }
 
         // Marker Wielicka/Teligi

@@ -295,7 +295,13 @@
                 mapa.setView(e.latlng, 16);
             }
         });
-
+// Marker Mateczny/Kalwaryjska
+L.circleMarker([50.03667663430466, 19.94068768665933], {
+    radius: 10, fillColor: "#ff0000", color: "#fff", weight: 2, fillOpacity: 1
+}).addTo(mapa).on('click', function() {
+    if (trybZaznaczania) return;
+    otworzPanel({ id: 'mateczny_kalwaryjska', nazwa: 'Mateczny / Kalwaryjska' });
+});
         // Marker Wielicka/Facimiech
         L.circleMarker([50.017316906572326, 19.991255815131844], {
             radius: 10, fillColor: "#ff0000", color: "#fff", weight: 2, fillOpacity: 1

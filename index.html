@@ -406,11 +406,13 @@
                 aktualizuj();
                 interwał = setInterval(aktualizuj, 1000);
             } else {
-                document.getElementById('przyciski-korekty').style.display = 'none';
-                document.getElementById('swiatlo').innerText = '⚫';
-                document.getElementById('odliczanie').innerText = '--';
-                document.getElementById('opis').innerText = 'Brak danych — użyj trybu pomiaru';
-                document.getElementById('dokladnosc').innerText = '';
+    document.getElementById('przyciski-korekty').style.display = 'none';
+    document.getElementById('swiatlo').innerText = '⚫';
+    document.getElementById('odliczanie').innerText = 'Zmierz światła';
+    document.getElementById('opis').innerText = 'Kliknij gdy zmienia się światło';
+    document.getElementById('dokladnosc').innerText = '📍 Stań przy skrzyżowaniu i zacznij mierzyć';
+    document.getElementById('przyciski-pomiaru').style.display = 'block';
+    trybPomiaru = true;
             }
         }
 

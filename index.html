@@ -245,12 +245,15 @@
         }).addTo(mapa);
 
         markerWielicka.on('click', function() {
-            otworzPanel({
-                id: 'wielicka_teligi',
-                nazwa: 'Wielicka / Teligi',
-                lat: 50.01420215172329,
-                lng: 19.999269960360717
-            });
+           otworzPanel({
+    id: 'wielicka_teligi',
+    nazwa: 'Wielicka / Teligi',
+    lat: 50.01420215172329,
+    lng: 19.999269960360717,
+    startZielone: { h: 9, m: 26, s: 16 },
+    czasZielone: 15,
+    czasCzerwone: 90
+});
         });
 
         // Wczytaj pozostałe sygnalizatory z GeoJSON

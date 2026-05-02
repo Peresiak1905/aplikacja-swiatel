@@ -358,7 +358,12 @@
                 mapa.setView(e.latlng, 16);
             }
         });
-
+// Marker Wielicka/Facimiech
+L.circleMarker([50.017316906572326, 19.991255815131844], {
+    radius: 10, fillColor: "#ff0000", color: "#fff", weight: 2, fillOpacity: 1
+}).addTo(mapa).on('click', function() {
+    otworzPanel({ id: 'wielicka_facimiech', nazwa: 'Wielicka / Facimiech' });
+});
         // Marker Wielicka/Teligi
         L.circleMarker([50.01420215172329, 19.999269960360717], {
             radius: 10, fillColor: "#ff0000", color: "#fff", weight: 2, fillOpacity: 1

@@ -79,7 +79,9 @@
             <h3>📋 Moje trasy</h3>
             <div id="lista-tras"></div>
             <button id="btn-nowa-trasa" onclick="nowaTrasa()">➕ Nowa trasa</button>
-            <button id="btn-zamknij-modal" onclick="zamknijModal()">Zamknij</button>
+<button onclick="eksportujTrasy()" style="display:block;width:100%;margin:5px 0;padding:10px;background:#8e44ad;color:white;border:none;border-radius:10px;font-size:14px;cursor:pointer;">📤 Eksportuj trasy</button>
+<button onclick="importujTrasy()" style="display:block;width:100%;margin:5px 0;padding:10px;background:#d35400;color:white;border:none;border-radius:10px;font-size:14px;cursor:pointer;">📥 Importuj trasy</button>
+<button id="btn-zamknij-modal" onclick="zamknijModal()">Zamknij</button>
         </div>
     </div>
 
@@ -132,7 +134,30 @@
                 ostatniKolorKorekty: null
             }
         };
+function eksportujTrasy() {
+    const trasy = wczytajTrasy();
+    if (Object.keys(trasy).length === 0) {
+        alert('Brak tras do eksportu!');
+        return;
+    }
+    const kod = btoa(JSON.stringify(trasy));
+    prompt('Skopiuj ten kod i wklej na innym urządzeniu:', kod);
+}
 
+function importujTrasy() {
+    const kod = prompt('Wklej kod trasy:');
+    if (!kod) return;
+    try {
+        const trasy = JSON.parse(atob(kod));
+        const istniejace = wczytajTrasy();
+        const polaczone = Object.assign(istniejace, trasy);
+        zapiszTrasy(polaczone);
+        alert('✅ Trasy zaimportowane pomyślnie!');
+        otworzModalTras();
+    } catch(e) {
+        alert('❌ Błędny kod — spróbuj ponownie');
+    }
+}
         // System tras
         function wczytajTrasy() {
             const dane = localStorage.getItem('trasy');

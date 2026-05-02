@@ -10,82 +10,132 @@
             font-family: Arial, sans-serif;
             background: #1a1a2e;
             color: white;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
         }
-        h1 { margin-top: 20px; font-size: 22px; color: #00d4ff; }
-        #mapa { width: 100%; height: calc(100vh - 50px); }
-     #panel {
-    display: none;
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: #16213e;
-    border-top: 2px solid #00d4ff;
-    padding: 20px;
-    box-sizing: border-box;
-    text-align: center;
-    z-index: 9999;
-}
-        #panel h2 { margin: 0 0 10px 0; color: #00d4ff; font-size: 18px; }
-        #swiatlo { font-size: 80px; margin: 10px 0; }
-        #odliczanie { font-size: 48px; font-weight: bold; margin: 5px 0; }
-        #opis { font-size: 16px; color: #aaa; margin: 5px 0 15px 0; }
-        .btn-pomiar {
-            padding: 12px 20px;
+        h1 {
+            text-align: center;
+            margin: 5px 0;
+            font-size: 16px;
+            color: #00d4ff;
+        }
+        #mapa { width: 100%; height: calc(100vh - 30px); }
+        #panel {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: #16213e;
+            border-top: 2px solid #00d4ff;
+            padding: 15px;
+            box-sizing: border-box;
+            text-align: center;
+            z-index: 9999;
+        }
+        #panel h2 { margin: 0 0 5px 0; color: #00d4ff; font-size: 16px; }
+        #swiatlo { font-size: 60px; margin: 5px 0; }
+        #odliczanie { font-size: 42px; font-weight: bold; margin: 3px 0; }
+        #opis { font-size: 14px; color: #aaa; margin: 3px 0; }
+        #dokladnosc { font-size: 12px; color: #ffcc00; margin: 3px 0; }
+        #przyciski-korekty {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin: 8px 0;
+            flex-wrap: wrap;
+        }
+        .btn-korekta {
+            padding: 10px 15px;
             border: none;
             border-radius: 20px;
-            font-size: 15px;
+            font-size: 13px;
             font-weight: bold;
             cursor: pointer;
-            margin: 5px;
         }
-        #btn-czerwone { background: #e74c3c; color: white; }
-        #btn-zielone { background: #2ecc71; color: white; }
-        #btn-zapisz { background: #00d4ff; color: #1a1a2e; display: none; }
-        #log-pomiarow { font-size: 13px; color: #aaa; margin: 8px 0; }
-        #zamknij {
-            margin-top: 10px;
-            padding: 8px 20px;
-            background: #444;
-            color: white;
-            border: none;
-            border-radius: 20px;
-            font-size: 14px;
-            cursor: pointer;
-        }
+        #btn-korekta-czerwone { background: #e74c3c; color: white; }
+        #btn-korekta-zielone { background: #2ecc71; color: white; }
         #btn-mowa {
-            margin: 10px 5px;
-            padding: 10px 20px;
+            padding: 8px 15px;
             background: #9b59b6;
             color: white;
             border: none;
             border-radius: 20px;
-            font-size: 14px;
+            font-size: 13px;
             cursor: pointer;
             font-weight: bold;
+            margin: 5px;
+        }
+        #przyciski-pomiaru {
+            display: none;
+            margin: 8px 0;
+        }
+        .btn-pomiar {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 3px;
+        }
+        #btn-czerwone { background: #e74c3c; color: white; }
+        #btn-zielone { background: #2ecc71; color: white; }
+        #btn-zapisz { background: #00d4ff; color: #1a1a2e; display: none; }
+        #log-pomiarow { font-size: 12px; color: #aaa; margin: 5px 0; max-height: 80px; overflow-y: auto; }
+        #tryb-toggle {
+            font-size: 12px;
+            color: #00d4ff;
+            cursor: pointer;
+            text-decoration: underline;
+            margin: 5px 0;
+            display: inline-block;
+        }
+        #zamknij {
+            margin-top: 5px;
+            padding: 6px 15px;
+            background: #444;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
         }
     </style>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
-    <h1 style="margin: 5px 0; font-size: 16px;">Aplikacja Świateł Kraków</h1>
+    <h1>Aplikacja Świateł Kraków</h1>
     <div id="mapa"></div>
     <div id="panel">
         <h2 id="nazwa-skrzyzowania">Skrzyżowanie</h2>
         <div id="swiatlo">⚫</div>
         <div id="odliczanie">--</div>
         <div id="opis">Ładowanie...</div>
-        <button id="btn-mowa" onclick="wlaczMowe()">🔊 Włącz komunikaty głosowe</button>
-        <div id="log-pomiarow"></div>
-        <div>
+        <div id="dokladnosc"></div>
+
+        <!-- Przyciski korekty na żywo -->
+        <div id="przyciski-korekty">
+            <button class="btn-korekta" id="btn-korekta-czerwone" onclick="koryguj('czerwone')">
+                🔴 Właśnie zmieniło się na CZERWONE
+            </button>
+            <button class="btn-korekta" id="btn-korekta-zielone" onclick="koryguj('zielone')">
+                🟢 Właśnie zmieniło się na ZIELONE
+            </button>
+        </div>
+
+        <button id="btn-mowa" onclick="wlaczMowe()">🔊 Włącz głos</button>
+        <br>
+        <span id="tryb-toggle" onclick="przełączTryb()">⚙️ Tryb pomiaru nowego skrzyżowania</span>
+
+        <!-- Przyciski pomiaru ukryte domyślnie -->
+        <div id="przyciski-pomiaru">
+            <div id="log-pomiarow"></div>
             <button class="btn-pomiar" id="btn-czerwone" onclick="zapiszZmiane('czerwone')">🔴 Zapaliło się CZERWONE</button>
             <button class="btn-pomiar" id="btn-zielone" onclick="zapiszZmiane('zielone')">🟢 Zapaliło się ZIELONE</button>
             <button class="btn-pomiar" id="btn-zapisz" onclick="zapiszDane()">💾 Zapisz dane</button>
         </div>
+
+        <br>
         <button id="zamknij" onclick="zamknijPanel()">Zamknij</button>
     </div>
 
@@ -100,25 +150,87 @@
         let interwał = null;
         let mowaWlaczona = false;
         let ostatnioMowiono = null;
+        let trybPomiaru = false;
 
+        // Dane skrzyżowań
         const daneSkrzyzowan = {
             'wielicka_teligi': {
-               startZielone: { h: 13, m: 50, s: 16 },
-czasZielone: 15,
-czasCzerwone: 96
+                startZielone: { h: 13, m: 50, s: 16 },
+                czasZielone: 15,
+                czasCzerwone: 96,
+                // Korekta na żywo
+                ostatniaKorekta: null,
+                ostatniKolorKorekty: null
             }
         };
+
+        function koryguj(kolor) {
+            const dane = daneSkrzyzowan[aktualneSkrzyzowanie.id];
+            if (!dane) return;
+
+            // Zapisz moment korekty
+            dane.ostatniaKorekta = Date.now();
+            dane.ostatniKolorKorekty = kolor;
+            ostatnioMowiono = null;
+
+            const godzinaStr = new Date().toLocaleTimeString('pl-PL');
+            document.getElementById('dokladnosc').innerText =
+                '✅ Zsynchronizowano o ' + godzinaStr;
+
+            mow(kolor === 'zielone' ? 'Zsynchronizowano. Zielone.' : 'Zsynchronizowano. Czerwone.');
+        }
+
+        function obliczStan(dane) {
+            const teraz = Date.now();
+            const cykl = (dane.czasZielone + dane.czasCzerwone) * 1000;
+
+            // Jeśli mamy korektę na żywo użyj jej
+            if (dane.ostatniaKorekta !== null) {
+                const uplynelo = teraz - dane.ostatniaKorekta;
+                let pozycja;
+
+                if (dane.ostatniKolorKorekty === 'zielone') {
+                    pozycja = uplynelo % cykl;
+                } else {
+                    pozycja = (dane.czasZielone * 1000 + uplynelo) % cykl;
+                }
+
+                const pozycjaSek = Math.floor(pozycja / 1000);
+
+                if (pozycjaSek < dane.czasZielone) {
+                    return { kolor: 'zielone', pozostalo: dane.czasZielone - pozycjaSek };
+                } else {
+                    return { kolor: 'czerwone', pozostalo: dane.czasZielone + dane.czasCzerwone - pozycjaSek };
+                }
+            }
+
+            // Fallback - oblicz z punktu startowego
+            const start = new Date();
+            start.setHours(dane.startZielone.h);
+            start.setMinutes(dane.startZielone.m);
+            start.setSeconds(dane.startZielone.s);
+            start.setMilliseconds(0);
+            if (start > new Date()) start.setDate(start.getDate() - 1);
+
+            const sekundy = Math.floor((Date.now() - start.getTime()) / 1000);
+            const pozycja = sekundy % (dane.czasZielone + dane.czasCzerwone);
+
+            if (pozycja < dane.czasZielone) {
+                return { kolor: 'zielone', pozostalo: dane.czasZielone - pozycja };
+            } else {
+                return { kolor: 'czerwone', pozostalo: dane.czasZielone + dane.czasCzerwone - pozycja };
+            }
+        }
 
         function wlaczMowe() {
             mowaWlaczona = !mowaWlaczona;
             const btn = document.getElementById('btn-mowa');
             if (mowaWlaczona) {
-                btn.innerText = '🔊 Komunikaty głosowe: WŁ';
+                btn.innerText = '🔊 Głos: WŁ';
                 btn.style.background = '#27ae60';
-                // Test głosu
                 mow('Komunikaty głosowe włączone');
             } else {
-                btn.innerText = '🔇 Komunikaty głosowe: WYŁ';
+                btn.innerText = '🔇 Głos: WYŁ';
                 btn.style.background = '#7f8c8d';
                 ostatnioMowiono = null;
             }
@@ -136,35 +248,26 @@ czasCzerwone: 96
             window.speechSynthesis.speak(msg);
         }
 
-        function obliczStan(dane) {
-            const teraz = new Date();
-            const start = new Date(teraz);
-            start.setHours(dane.startZielone.h);
-            start.setMinutes(dane.startZielone.m);
-            start.setSeconds(dane.startZielone.s);
-            start.setMilliseconds(0);
-            if (start > teraz) start.setDate(start.getDate() - 1);
-
-            const cykl = dane.czasZielone + dane.czasCzerwone;
-            const sekundy = Math.floor((teraz - start) / 1000);
-            const pozycja = sekundy % cykl;
-
-            if (pozycja < dane.czasZielone) {
-                return { kolor: 'zielone', pozostalo: dane.czasZielone - pozycja };
-            } else {
-                return { kolor: 'czerwone', pozostalo: cykl - pozycja };
-            }
+        function przełączTryb() {
+            trybPomiaru = !trybPomiaru;
+            document.getElementById('przyciski-pomiaru').style.display = trybPomiaru ? 'block' : 'none';
+            document.getElementById('tryb-toggle').innerText = trybPomiaru
+                ? '⚙️ Ukryj tryb pomiaru'
+                : '⚙️ Tryb pomiaru nowego skrzyżowania';
         }
 
         function otworzPanel(skrzyzowanie) {
             aktualneSkrzyzowanie = skrzyzowanie;
             pomiary = [];
             ostatnioMowiono = null;
+            trybPomiaru = false;
             document.getElementById('panel').style.display = 'block';
             document.getElementById('nazwa-skrzyzowania').innerText = skrzyzowanie.nazwa;
             document.getElementById('log-pomiarow').innerHTML = '';
             document.getElementById('btn-zapisz').style.display = 'none';
-            document.getElementById('btn-mowa').innerText = '🔊 Włącz komunikaty głosowe';
+            document.getElementById('przyciski-pomiaru').style.display = 'none';
+            document.getElementById('tryb-toggle').innerText = '⚙️ Tryb pomiaru nowego skrzyżowania';
+            document.getElementById('btn-mowa').innerText = '🔊 Włącz głos';
             document.getElementById('btn-mowa').style.background = '#9b59b6';
             mowaWlaczona = false;
 
@@ -173,6 +276,9 @@ czasCzerwone: 96
             const dane = daneSkrzyzowan[skrzyzowanie.id];
 
             if (dane) {
+                document.getElementById('przyciski-korekty').style.display = 'flex';
+                document.getElementById('dokladnosc').innerText = '⚠️ Kliknij gdy zmieni się światło aby zsynchronizować';
+
                 function aktualizuj() {
                     const stan = obliczStan(dane);
                     document.getElementById('swiatlo').innerText = stan.kolor === 'zielone' ? '🟢' : '🔴';
@@ -181,27 +287,27 @@ czasCzerwone: 96
                         ? '🚗 Jedź! Zielone jeszcze przez:'
                         : '✋ Poczekaj. Czerwone jeszcze przez:';
 
-                    // Komunikaty głosowe
-                    if (stan.kolor === 'czerwone' && stan.pozostalo === 10) {
-                        mow('Za 10 sekund zielone');
-                    }
-                    if (stan.kolor === 'czerwone' && stan.pozostalo === 5) {
-                        mow('Za 5 sekund zmiana światła');
-                    }
-                    if (stan.kolor === 'czerwone' && stan.pozostalo === 3) {
-                        mow('Za 3 sekundy zielone');
-                    }
-                    if (stan.kolor === 'zielone' && stan.pozostalo === 3) {
-                        mow('Uwaga, za 3 sekundy czerwone');
-                    }
+                    if (stan.kolor === 'czerwone' && stan.pozostalo === 10) mow('Za 10 sekund zielone');
+                    if (stan.kolor === 'czerwone' && stan.pozostalo === 5) mow('Za 5 sekund zmiana światła');
+                    if (stan.kolor === 'czerwone' && stan.pozostalo === 3) mow('Za 3 sekundy zielone');
+                    if (stan.kolor === 'zielone' && stan.pozostalo === 3) mow('Uwaga, za 3 sekundy czerwone');
                 }
                 aktualizuj();
                 interwał = setInterval(aktualizuj, 1000);
             } else {
+                document.getElementById('przyciski-korekty').style.display = 'none';
                 document.getElementById('swiatlo').innerText = '⚫';
                 document.getElementById('odliczanie').innerText = '--';
-                document.getElementById('opis').innerText = 'Kliknij gdy zmienia się światło';
+                document.getElementById('opis').innerText = 'Brak danych — użyj trybu pomiaru';
+                document.getElementById('dokladnosc').innerText = '';
             }
+        }
+
+        function zamknijPanel() {
+            document.getElementById('panel').style.display = 'none';
+            if (interwał) clearInterval(interwał);
+            window.speechSynthesis.cancel();
+            mowaWlaczona = false;
         }
 
         function zapiszZmiane(kolor) {
@@ -231,43 +337,28 @@ czasCzerwone: 96
             daneSkrzyzowan[aktualneSkrzyzowanie.id] = {
                 startZielone: { h: d.getHours(), m: d.getMinutes(), s: d.getSeconds() },
                 czasZielone: liczbZ > 0 ? Math.round(sumaZ / liczbZ) : 15,
-                czasCzerwone: liczbC > 0 ? Math.round(sumaC / liczbC) : 90
+                czasCzerwone: liczbC > 0 ? Math.round(sumaC / liczbC) : 96,
+                ostatniaKorekta: null,
+                ostatniKolorKorekty: null
             };
             alert('✅ Dane zapisane!');
             otworzPanel(aktualneSkrzyzowanie);
         }
 
-        function zamknijPanel() {
-            document.getElementById('panel').style.display = 'none';
-            if (interwał) clearInterval(interwał);
-            window.speechSynthesis.cancel();
-            mowaWlaczona = false;
-        }
-// GPS - lokalizacja użytkownika
-let markerGPS = null;
+        // GPS
+        let markerGPS = null;
+        mapa.locate({ watch: true, enableHighAccuracy: true });
+        mapa.on('locationfound', function(e) {
+            if (markerGPS) {
+                markerGPS.setLatLng(e.latlng);
+            } else {
+                markerGPS = L.circleMarker(e.latlng, {
+                    radius: 10, fillColor: "#00d4ff", color: "#fff", weight: 3, fillOpacity: 1
+                }).addTo(mapa);
+                mapa.setView(e.latlng, 16);
+            }
+        });
 
-mapa.locate({ watch: true, enableHighAccuracy: true });
-
-mapa.on('locationfound', function(e) {
-    if (markerGPS) {
-        markerGPS.setLatLng(e.latlng);
-    } else {
-        markerGPS = L.circleMarker(e.latlng, {
-            radius: 10,
-            fillColor: "#00d4ff",
-            color: "#fff",
-            weight: 3,
-            fillOpacity: 1
-        }).addTo(mapa);
-        markerGPS.bindPopup("📍 Jesteś tutaj");
-        // Wycentruj mapę na użytkowniku przy pierwszym sygnale
-        mapa.setView(e.latlng, 16);
-    }
-});
-
-mapa.on('locationerror', function() {
-    console.log('Brak dostępu do GPS');
-});
         // Marker Wielicka/Teligi
         L.circleMarker([50.01420215172329, 19.999269960360717], {
             radius: 10, fillColor: "#ff0000", color: "#fff", weight: 2, fillOpacity: 1

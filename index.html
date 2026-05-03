@@ -418,6 +418,7 @@
     </style>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-rotate@0.2.8/dist/leaflet-rotate-src.js"></script>
 </head>
 <body>
 
@@ -538,20 +539,51 @@
     };
 
     // ===== GPS =====
-    let markerGPS = null;
-    mapa.locate({ watch: true, enableHighAccuracy: true });
-    mapa.on('locationfound', function(e) {
-        pozycjaGPS = e.latlng;
-        if (markerGPS) {
-            markerGPS.setLatLng(e.latlng);
-        } else {
-            markerGPS = L.circleMarker(e.latlng, {
-                radius: 10, fillColor: "#00d4ff", color: "#fff", weight: 3, fillOpacity: 1
-            }).addTo(mapa);
-            mapa.setView(e.latlng, 16);
+   let markerGPS = null;
+let poprzedniaPozycja = null;
+let aktualnyKierunek = 0;
+
+mapa.locate({ watch: true, enableHighAccuracy: true });
+mapa.on('locationfound', function(e) {
+    const nowaPozycja = e.latlng;
+
+    // Oblicz kierunek jazdy
+    if (poprzedniaPozycja) {
+        const dLng = nowaPozycja.lng - poprzedniaPozycja.lng;
+        const dLat = nowaPozycja.lat - poprzedniaPozycja.lat;
+        const odleglosc = Math.sqrt(dLat*dLat + dLng*dLng);
+
+        // Aktualizuj kierunek tylko gdy się poruszamy
+        if (odleglosc > 0.00005) {
+            const kat = Math.atan2(dLng, dLat) * 180 / Math.PI;
+            aktualnyKierunek = kat;
+            // Obróć mapę
+            mapa.setBearing(-kat);
         }
-        aktualizujHUD();
-    });
+    }
+
+    poprzedniaPozycja = nowaPozycja;
+    pozycjaGPS = nowaPozycja;
+
+    if (markerGPS) {
+        markerGPS.setLatLng(nowaPozycja);
+    } else {
+        // Strzałka zamiast kropki — pokazuje kierunek
+        markerGPS = L.marker(nowaPozycja, {
+            icon: L.divIcon({
+                html: '<div style="width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-bottom:20px solid #00d4ff;transform-origin:center bottom;"></div>',
+                iconSize: [16, 20],
+                iconAnchor: [8, 10],
+                className: ''
+            })
+        }).addTo(mapa);
+        mapa.setView(nowaPozycja, 17);
+    }
+
+    // Centruj mapę na pozycji
+    mapa.setView(nowaPozycja, mapa.getZoom(), { animate: true });
+    aktualizujHUD();
+});
 
     // ===== FUNKCJA DYSTANSU =====
     function dystans(lat1, lng1, lat2, lng2) {

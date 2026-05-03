@@ -300,7 +300,7 @@ const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeUR
                 // Zaznacz sygnalizatory na trasie
                 status.innerText = '⏳ Zaznaczam sygnalizatory...';
                 let liczba = 0;
-                const promien = 35; // metry
+                const promien = 10; // metry
 
                 Object.keys(warstwyMarkerow).forEach(id => {
                     const marker = warstwyMarkerow[id];

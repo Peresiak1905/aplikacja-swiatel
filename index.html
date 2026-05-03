@@ -557,7 +557,29 @@ mapa.on('locationfound', function(e) {
             const kat = Math.atan2(dLng, dLat) * 180 / Math.PI;
             aktualnyKierunek = kat;
             // Obróć mapę
-            mapa.setBearing(-kat);
+            let markerGPS = null;
+let poprzedniaPozycja = null;
+let aktualnyKierunek = 0;
+
+mapa.locate({ watch: true, enableHighAccuracy: true });
+mapa.on('locationfound', function(e) {
+    const nowaPozycja = e.latlng;
+
+    poprzedniaPozycja = nowaPozycja;
+    pozycjaGPS = nowaPozycja;
+
+    if (markerGPS) {
+        markerGPS.setLatLng(nowaPozycja);
+    } else {
+        markerGPS = L.circleMarker(nowaPozycja, {
+            radius: 10, fillColor: "#00d4ff", color: "#fff", weight: 3, fillOpacity: 1
+        }).addTo(mapa);
+        mapa.setView(nowaPozycja, 16);
+    }
+
+    mapa.setView(nowaPozycja, mapa.getZoom(), { animate: true });
+    aktualizujHUD();
+});
         }
     }
 

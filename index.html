@@ -208,7 +208,8 @@
         }
 
         async function geokoduj(adres) {
-            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(adres)}&limit=1&countrycodes=pl`;
+            const query = adres.toLowerCase().includes('kraków') || adres.toLowerCase().includes('krakow') ? adres : adres + ', Kraków';
+const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1&countrycodes=pl&viewbox=19.7,50.2,20.2,49.9&bounded=1`;
             const resp = await fetch(url, { headers: { 'Accept-Language': 'pl' } });
             const dane = await resp.json();
             if (dane.length === 0) throw new Error('Nie znaleziono: ' + adres);

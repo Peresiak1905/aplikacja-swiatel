@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GreenWave</title>
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet"/>
+    <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
@@ -72,11 +74,8 @@
         #bpm-zapisz { background: rgba(0,212,255,0.15); color: var(--blue); border: 1px solid rgba(0,212,255,0.4); display: none; }
         #log-pomiarow { font-size: 11px; color: #555; margin: 6px 0; max-height: 60px; overflow-y: auto; font-family: 'Share Tech Mono', monospace; }
         #bpm-zamknij { background: rgba(255,255,255,0.05); color: #666; border: 1px solid #333; margin-top: 4px; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
-        .pulsuje { animation: pulse 1s infinite; }
+        .maplibregl-canvas { border-radius: 0; }
     </style>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
 
@@ -151,9 +150,118 @@
 </div>
 
 <script>
-    const mapa = L.map('mapa').setView([50.0614, 19.9366], 14);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(mapa);
+    // ===== MAPA 3D MAPLIBRE =====
+    const mapa = new maplibregl.Map({
+        container: 'mapa',
+        style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
+        center: [19.9366, 50.0614],
+        zoom: 15,
+        pitch: 45,
+        bearing: 0,
+        antialias: true
+    });
 
+    mapa.on('load', () => {
+        // Dodaj budynki 3D
+        mapa.addSource('openmaptiles', {
+            type: 'vector',
+            url: 'https://api.maptiler.com/tiles/v3/tiles.json?key=get_your_own_key'
+        });
+
+        // Warstwa budynków z OSM przez CARTO
+        const layers = mapa.getStyle().layers;
+        let labelLayerId;
+        for (let i = 0; i < layers.length; i++) {
+            if (layers[i].type === 'symbol' && layers[i].layout['text-field']) {
+                labelLayerId = layers[i].id;
+                break;
+            }
+        }
+
+        // Załaduj sygnalizatory po załadowaniu mapy
+        zaladujSygnalizatory();
+    });
+
+    let markery = {};
+    let warstwyMarkerow = {};
+    let liniaTrasy = null;
+
+    function zaladujSygnalizatory() {
+        // Dodaj ręczne markery
+        dodajMarker(50.03667663430466, 19.94068768665933, 'mateczny_kalwaryjska', 'Mateczny / Kalwaryjska');
+        dodajMarker(50.017316906572326, 19.991255815131844, 'wielicka_facimiech', 'Wielicka / Facimiech');
+        dodajMarker(50.01420215172329, 19.999269960360717, 'wielicka_teligi', 'Wielicka / Teligi');
+
+        // Załaduj z GeoJSON
+        fetch('sygnalizatory.geojson')
+            .then(r => r.json())
+            .then(data => {
+                data.features.forEach(f => {
+                    const id = 'osm_' + f.id;
+                    const nazwa = f.properties.name || 'Sygnalizator';
+                    const [lng, lat] = f.geometry.coordinates;
+                    dodajMarkerOSM(lat, lng, id, nazwa);
+                });
+            });
+    }
+
+    function stworzElementMarkera(kolor, rozmiar) {
+        const el = document.createElement('div');
+        el.style.cssText = `
+            width: ${rozmiar}px;
+            height: ${rozmiar}px;
+            background: ${kolor};
+            border: 2px solid white;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 8px ${kolor};
+        `;
+        return el;
+    }
+
+    function dodajMarker(lat, lng, id, nazwa) {
+        const el = stworzElementMarkera('#ff3355', 16);
+        const marker = new maplibregl.Marker({ element: el })
+            .setLngLat([lng, lat])
+            .addTo(mapa);
+
+        el.addEventListener('click', () => {
+            if (trybZaznaczania) {
+                warstwyMarkerow[id].naTransie = !warstwyMarkerow[id].naTransie;
+                el.style.background = warstwyMarkerow[id].naTransie ? '#00ff88' : '#ff3355';
+                el.style.boxShadow = `0 0 8px ${warstwyMarkerow[id].naTransie ? '#00ff88' : '#ff3355'}`;
+            } else {
+                const dane = daneSkrzyzowan[id];
+                if (dane) aktywujSkrzyzowanie({ id, nazwa }, dane);
+                else otworzPomiar({ id, nazwa });
+            }
+        });
+
+        warstwyMarkerow[id] = { marker, el, naTransie: false, nazwa, lat, lng, reczny: true };
+    }
+
+    function dodajMarkerOSM(lat, lng, id, nazwa) {
+        const el = stworzElementMarkera('#ffcc00', 10);
+        const marker = new maplibregl.Marker({ element: el })
+            .setLngLat([lng, lat])
+            .addTo(mapa);
+
+        el.addEventListener('click', () => {
+            if (trybZaznaczania) {
+                warstwyMarkerow[id].naTransie = !warstwyMarkerow[id].naTransie;
+                el.style.background = warstwyMarkerow[id].naTransie ? '#00ff88' : '#ffcc00';
+                el.style.boxShadow = `0 0 8px ${warstwyMarkerow[id].naTransie ? '#00ff88' : '#ffcc00'}`;
+            } else {
+                const dane = daneSkrzyzowan[id];
+                if (dane) aktywujSkrzyzowanie({ id, nazwa }, dane);
+                else otworzPomiar({ id, nazwa });
+            }
+        });
+
+        warstwyMarkerow[id] = { marker, el, naTransie: false, nazwa, lat, lng, reczny: false };
+    }
+
+    // ===== ZMIENNE =====
     let aktualneSkrzyzowanie = null;
     let pomiary = [];
     let interwał = null;
@@ -162,8 +270,6 @@
     let trybZaznaczania = false;
     let trybEdycji = false;
     let edytowanaNazwaTrasy = null;
-    let warstwyMarkerow = {};
-    let liniaTrasy = null;
     let licznikPosrednich = 0;
     let pozycjaGPS = null;
     let markerGPS = null;
@@ -207,20 +313,31 @@
     }
 
     // ===== GPS =====
-    mapa.locate({ watch: true, enableHighAccuracy: true });
-    mapa.on('locationfound', function(e) {
-        pozycjaGPS = e.latlng;
-        if (markerGPS) {
-            markerGPS.setLatLng(e.latlng);
-        } else {
-            markerGPS = L.circleMarker(e.latlng, {
-                radius: 10, fillColor: "#00d4ff", color: "#fff", weight: 3, fillOpacity: 1
-            }).addTo(mapa);
-            mapa.setView(e.latlng, 16);
-        }
-        mapa.setView(e.latlng, mapa.getZoom(), { animate: true });
-        aktualizujHUD();
-    });
+    if (navigator.geolocation) {
+        navigator.geolocation.watchPosition(function(pos) {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+            pozycjaGPS = { lat, lng };
+
+            if (markerGPS) {
+                markerGPS.setLngLat([lng, lat]);
+            } else {
+                const el = document.createElement('div');
+                el.style.cssText = `
+                    width: 20px; height: 20px;
+                    background: #00d4ff;
+                    border: 3px solid white;
+                    border-radius: 50%;
+                    box-shadow: 0 0 15px #00d4ff;
+                `;
+                markerGPS = new maplibregl.Marker({ element: el })
+                    .setLngLat([lng, lat])
+                    .addTo(mapa);
+                mapa.flyTo({ center: [lng, lat], zoom: 16, pitch: 45 });
+            }
+            aktualizujHUD();
+        }, null, { enableHighAccuracy: true, maximumAge: 0 });
+    }
 
     // ===== DYSTANS =====
     function dystans(lat1, lng1, lat2, lng2) {
@@ -240,8 +357,8 @@
 
         Object.keys(warstwyMarkerow).forEach(id => {
             if (!warstwyMarkerow[id].naTransie) return;
-            const ll = warstwyMarkerow[id].layer.getLatLng();
-            const d = dystans(pozycjaGPS.lat, pozycjaGPS.lng, ll.lat, ll.lng);
+            const m = warstwyMarkerow[id];
+            const d = dystans(pozycjaGPS.lat, pozycjaGPS.lng, m.lat, m.lng);
             if (d < minDyst && d < 500) {
                 minDyst = d;
                 najblizszyId = id;
@@ -257,30 +374,19 @@
                 aktywujSkrzyzowanie({ id: najblizszyId, nazwa }, dane);
             }
 
-            // Oblicz optymalną prędkość
             if (dane) {
                 const stan = obliczStan(dane);
-                const sekundy = stan.pozostalo;
-                const predkoscMs = minDyst / sekundy;
+                const predkoscMs = minDyst / stan.pozostalo;
                 const predkoscKmh = Math.round(predkoscMs * 3.6);
-
                 let komunikat = '';
                 if (stan.kolor === 'czerwone') {
-                    if (predkoscKmh >= 10 && predkoscKmh <= 90) {
-                        komunikat = `🚗 Jedź ${predkoscKmh} km/h → złapiesz zielone`;
-                    } else if (predkoscKmh < 10) {
-                        komunikat = `⏸ Zatrzymaj się`;
-                    } else {
-                        komunikat = `⏳ Poczekaj na kolejne zielone`;
-                    }
+                    if (predkoscKmh >= 10 && predkoscKmh <= 90) komunikat = `🚗 Jedź ${predkoscKmh} km/h → złapiesz zielone`;
+                    else if (predkoscKmh < 10) komunikat = `⏸ Zatrzymaj się`;
+                    else komunikat = `⏳ Poczekaj na kolejne zielone`;
                 } else {
-                    if (predkoscKmh <= 90 && predkoscKmh >= 10) {
-                        komunikat = `🟢 Jedź ${predkoscKmh} km/h → zdążysz`;
-                    } else if (predkoscKmh < 10) {
-                        komunikat = `🟢 Jedź normalnie`;
-                    } else {
-                        komunikat = `🔴 Nie zdążysz — zwolnij`;
-                    }
+                    if (predkoscKmh <= 90 && predkoscKmh >= 10) komunikat = `🟢 Jedź ${predkoscKmh} km/h → zdążysz`;
+                    else if (predkoscKmh < 10) komunikat = `🟢 Jedź normalnie`;
+                    else komunikat = `🔴 Nie zdążysz — zwolnij`;
                 }
                 document.getElementById('hud-opis').innerText = komunikat;
             }
@@ -422,53 +528,6 @@
         aktywujSkrzyzowanie(aktualneSkrzyzowanie, daneSkrzyzowan[aktualneSkrzyzowanie.id]);
     }
 
-    // ===== MARKERY =====
-    function dodajMarker(lat, lng, id, nazwa) {
-        const layer = L.circleMarker([lat, lng], {
-            radius: 10, fillColor: "#ff3355", color: "#fff", weight: 2, fillOpacity: 1
-        }).addTo(mapa);
-        layer.on('click', function() {
-            if (trybZaznaczania) {
-                warstwyMarkerow[id].naTransie = !warstwyMarkerow[id].naTransie;
-                layer.setStyle({ fillColor: warstwyMarkerow[id].naTransie ? "#00ff88" : "#ff3355" });
-            } else {
-                const dane = daneSkrzyzowan[id];
-                if (dane) aktywujSkrzyzowanie({ id, nazwa }, dane);
-                else otworzPomiar({ id, nazwa });
-            }
-        });
-        warstwyMarkerow[id] = { layer, naTransie: false, nazwa };
-    }
-
-    dodajMarker(50.03667663430466, 19.94068768665933, 'mateczny_kalwaryjska', 'Mateczny / Kalwaryjska');
-    dodajMarker(50.017316906572326, 19.991255815131844, 'wielicka_facimiech', 'Wielicka / Facimiech');
-    dodajMarker(50.01420215172329, 19.999269960360717, 'wielicka_teligi', 'Wielicka / Teligi');
-
-    fetch('sygnalizatory.geojson')
-        .then(r => r.json())
-        .then(data => {
-            L.geoJSON(data, {
-                pointToLayer: (f, latlng) => L.circleMarker(latlng, {
-                    radius: 5, fillColor: "#ffcc00", color: "#fff", weight: 1, fillOpacity: 0.8
-                }),
-                onEachFeature: (f, layer) => {
-                    const id = 'osm_' + f.id;
-                    const nazwa = f.properties.name || 'Sygnalizator';
-                    warstwyMarkerow[id] = { layer, naTransie: false, nazwa };
-                    layer.on('click', () => {
-                        if (trybZaznaczania) {
-                            warstwyMarkerow[id].naTransie = !warstwyMarkerow[id].naTransie;
-                            layer.setStyle({ fillColor: warstwyMarkerow[id].naTransie ? "#00ff88" : "#ffcc00" });
-                        } else {
-                            const dane = daneSkrzyzowan[id];
-                            if (dane) aktywujSkrzyzowanie({ id, nazwa }, dane);
-                            else otworzPomiar({ id, nazwa });
-                        }
-                    });
-                }
-            }).addTo(mapa);
-        });
-
     // ===== TRASY =====
     function wczytajTrasy() { return JSON.parse(localStorage.getItem('trasy') || '{}'); }
     function zapiszTrasy(trasy) { localStorage.setItem('trasy', JSON.stringify(trasy)); }
@@ -551,7 +610,9 @@
         zamknijModal('modal-trasy');
         Object.keys(warstwyMarkerow).forEach(id => {
             warstwyMarkerow[id].naTransie = false;
-            warstwyMarkerow[id].layer.setStyle({ fillColor: id.startsWith('osm_') ? "#ffcc00" : "#ff3355" });
+            const kolor = warstwyMarkerow[id].reczny ? '#ff3355' : '#ffcc00';
+            warstwyMarkerow[id].el.style.background = kolor;
+            warstwyMarkerow[id].el.style.boxShadow = `0 0 8px ${kolor}`;
         });
         trybZaznaczania = true;
         document.getElementById('btn-trasa').innerText = '✅ ZAZNACZ';
@@ -574,12 +635,15 @@
         const punkty = wczytajTrasy()[nazwa] || [];
         Object.keys(warstwyMarkerow).forEach(id => {
             warstwyMarkerow[id].naTransie = false;
-            warstwyMarkerow[id].layer?.setStyle({ fillColor: id.startsWith('osm_') ? "#ffcc00" : "#ff3355" });
+            const kolor = warstwyMarkerow[id].reczny ? '#ff3355' : '#ffcc00';
+            warstwyMarkerow[id].el.style.background = kolor;
+            warstwyMarkerow[id].el.style.boxShadow = `0 0 8px ${kolor}`;
         });
         punkty.forEach(id => {
             if (warstwyMarkerow[id]) {
                 warstwyMarkerow[id].naTransie = true;
-                warstwyMarkerow[id].layer.setStyle({ fillColor: "#00ff88" });
+                warstwyMarkerow[id].el.style.background = '#00ff88';
+                warstwyMarkerow[id].el.style.boxShadow = '0 0 8px #00ff88';
             }
         });
     }
@@ -589,7 +653,9 @@
             wyjdzZTrybu();
             Object.keys(warstwyMarkerow).forEach(id => {
                 warstwyMarkerow[id].naTransie = false;
-                warstwyMarkerow[id].layer.setStyle({ fillColor: id.startsWith('osm_') ? "#ffcc00" : "#ff3355" });
+                const kolor = warstwyMarkerow[id].reczny ? '#ff3355' : '#ffcc00';
+                warstwyMarkerow[id].el.style.background = kolor;
+                warstwyMarkerow[id].el.style.boxShadow = `0 0 8px ${kolor}`;
             });
         } else {
             nowaTrasa();
@@ -650,18 +716,38 @@
             const resp = await fetch(`https://router.project-osrm.org/route/v1/driving/${url}?overview=full&geometries=geojson`);
             const dane = await resp.json();
             if (dane.code !== 'Ok') { status.innerText = '❌ Błąd trasy'; return; }
-            if (liniaTrasy) mapa.removeLayer(liniaTrasy);
+
+            if (liniaTrasy) { mapa.removeLayer('trasa'); mapa.removeSource('trasa'); liniaTrasy = null; }
+
             const wsp = dane.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
-            liniaTrasy = L.polyline(wsp, { color: '#8e44ad', weight: 5, opacity: 0.8 }).addTo(mapa);
-            mapa.fitBounds(liniaTrasy.getBounds());
+
+            mapa.addSource('trasa', {
+                type: 'geojson',
+                data: { type: 'Feature', geometry: dane.routes[0].geometry }
+            });
+            mapa.addLayer({
+                id: 'trasa',
+                type: 'line',
+                source: 'trasa',
+                layout: { 'line-join': 'round', 'line-cap': 'round' },
+                paint: { 'line-color': '#8e44ad', 'line-width': 6, 'line-opacity': 0.8 }
+            });
+            liniaTrasy = true;
+
+            const bounds = wsp.reduce((b, c) => b.extend([c[1], c[0]]), new maplibregl.LngLatBounds([wsp[0][1], wsp[0][0]], [wsp[0][1], wsp[0][0]]));
+            mapa.fitBounds(bounds, { padding: 50 });
+
             let liczba = 0;
             Object.keys(warstwyMarkerow).forEach(id => {
-                const ll = warstwyMarkerow[id].layer.getLatLng();
-                const naT = czyNaTransie(ll.lat, ll.lng, wsp, 20);
-                warstwyMarkerow[id].naTransie = naT;
-                warstwyMarkerow[id].layer.setStyle({ fillColor: naT ? "#00ff88" : (id.startsWith('osm_') ? "#ffcc00" : "#ff3355") });
+                const m = warstwyMarkerow[id];
+                const naT = czyNaTransie(m.lat, m.lng, wsp, 20);
+                m.naTransie = naT;
+                const kolor = naT ? '#00ff88' : (m.reczny ? '#ff3355' : '#ffcc00');
+                m.el.style.background = kolor;
+                m.el.style.boxShadow = `0 0 8px ${kolor}`;
                 if (naT) liczba++;
             });
+
             const min = Math.round(dane.routes[0].duration/60);
             const km = (dane.routes[0].distance/1000).toFixed(1);
             status.innerText = `✅ ${km}km · ${min}min · ${liczba} świateł`;
@@ -669,10 +755,12 @@
     }
 
     function wyczyscTrase() {
-        if (liniaTrasy) { mapa.removeLayer(liniaTrasy); liniaTrasy = null; }
+        if (liniaTrasy) { mapa.removeLayer('trasa'); mapa.removeSource('trasa'); liniaTrasy = null; }
         Object.keys(warstwyMarkerow).forEach(id => {
             warstwyMarkerow[id].naTransie = false;
-            warstwyMarkerow[id].layer.setStyle({ fillColor: id.startsWith('osm_') ? "#ffcc00" : "#ff3355" });
+            const kolor = warstwyMarkerow[id].reczny ? '#ff3355' : '#ffcc00';
+            warstwyMarkerow[id].el.style.background = kolor;
+            warstwyMarkerow[id].el.style.boxShadow = `0 0 8px ${kolor}`;
         });
         document.getElementById('status-routing').innerText = '';
         document.getElementById('adres-start').value = '';

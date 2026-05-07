@@ -457,7 +457,8 @@
         <button class="btn-hud" onclick="przełączTrybZaznaczania()" id="btn-trasa">🗺 TRASA</button>
         <button class="btn-hud" id="btn-zapisz-trase" onclick="zapiszTrase()" style="display:none;">💾 ZAPISZ</button>
         <button class="btn-hud" onclick="otworzModalTras()">📋 MOJE</button>
-        <button class="btn-hud" onclick="otworzModalRouting()">🧭 WYZNACZ</button>
+       <button class="btn-hud" onclick="otworzModalRouting()">🧭 WYZNACZ</button>
+<button class="btn-hud" id="btn-symulacja" onclick="aktywujSymulacje()" style="border-color:rgba(255,204,0,0.3);color:var(--yellow);background:rgba(255,204,0,0.05);">⚡ SYMULACJA</button>
     </div>
 </div>
 
@@ -527,15 +528,35 @@
     let calkowityCykl = 0;
 
     // ===== DANE SKRZYŻOWAŃ =====
-    const daneSkrzyzowan = {
-        'wielicka_teligi': {
-            startZielone: { h: 13, m: 50, s: 16 },
-            czasZielone: 15,
-            czasCzerwone: 96,
-            ostatniaKorekta: null,
-            ostatniKolorKorekty: null
-        }
+    function generujLosoweWaRunki() {
+    const teraz = new Date();
+    const losowyCykl = Math.floor(Math.random() * 60) + 60;
+    const losoweZielone = Math.floor(Math.random() * 30) + 15;
+    const losoweOffset = Math.floor(Math.random() * losowyCykl);
+    const startSek = (teraz.getHours() * 3600 + teraz.getMinutes() * 60 + teraz.getSeconds() - losoweOffset + 86400) % 86400;
+    return {
+        startZielone: {
+            h: Math.floor(startSek / 3600),
+            m: Math.floor((startSek % 3600) / 60),
+            s: startSek % 60
+        },
+        czasZielone: losoweZielone,
+        czasCzerwone: losowyCykl - losoweZielone,
+        ostatniaKorekta: null,
+        ostatniKolorKorekty: null,
+        symulowane: true
     };
+}
+
+const daneSkrzyzowan = {
+    'wielicka_teligi': {
+        startZielone: { h: 13, m: 50, s: 16 },
+        czasZielone: 15,
+        czasCzerwone: 96,
+        ostatniaKorekta: null,
+        ostatniKolorKorekty: null
+    }
+};
 
     // ===== GPS =====
    let markerGPS = null;
@@ -819,8 +840,23 @@ mapa.on('locationfound', function(e) {
         msg.rate = 0.9;
         window.speechSynthesis.speak(msg);
     }
-
+function aktywujSymulacje() {
+    Object.keys(warstwyMarkerow).forEach(id => {
+        if (!daneSkrzyzowan[id] && warstwyMarkerow[id].naTransie) {
+            daneSkrzyzowan[id] = generujLosoweWaRunki();
+        }
+    });
+    alert('✅ Symulacja aktywna — wszystkie skrzyżowania na trasie mają losowe dane');
+}
     // ===== PANEL POMIARU =====
+    function aktywujSymulacje() {
+    Object.keys(warstwyMarkerow).forEach(id => {
+        if (!daneSkrzyzowan[id] && warstwyMarkerow[id].naTransie) {
+            daneSkrzyzowan[id] = generujLosoweWaRunki();
+        }
+    });
+    alert('✅ Symulacja aktywna — wszystkie skrzyżowania na trasie mają losowe dane');
+}
     function otworzPomiar(skrzyzowanie) {
         aktualneSkrzyzowanie = skrzyzowanie;
         pomiary = [];

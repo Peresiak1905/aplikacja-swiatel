@@ -7,7 +7,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
         :root {
             --green: #00ff88;
             --red: #ff3355;
@@ -17,403 +16,63 @@
             --panel: #0d1526;
             --border: rgba(0,212,255,0.2);
         }
-
-        body {
-            font-family: 'Rajdhani', sans-serif;
-            background: var(--bg);
-            color: white;
-            overflow: hidden;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* ===== GÓRNY HUD ===== */
-        #hud {
-            background: var(--panel);
-            border-bottom: 1px solid var(--border);
-            padding: 8px 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            position: relative;
-            z-index: 100;
-        }
-
-        #hud::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, var(--blue), transparent);
-        }
-
-        /* Pasek górny — nazwa i dystans */
-        #hud-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        #app-nazwa {
-            font-family: 'Share Tech Mono', monospace;
-            font-size: 13px;
-            color: var(--blue);
-            letter-spacing: 3px;
-            text-transform: uppercase;
-        }
-
-        #hud-dystans {
-            font-family: 'Share Tech Mono', monospace;
-            font-size: 12px;
-            color: #aaa;
-            letter-spacing: 1px;
-        }
-
-        #hud-dystans span {
-            color: var(--yellow);
-            font-size: 15px;
-            font-weight: bold;
-        }
-
-        /* Główna sekcja HUD */
-        #hud-main {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        /* Sygnalizator */
-        #hud-swiatlo {
-            width: 52px;
-            height: 52px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-            flex-shrink: 0;
-            position: relative;
-            background: #111;
-            border: 2px solid #333;
-            transition: all 0.3s ease;
-        }
-
-        #hud-swiatlo.czerwone {
-            border-color: var(--red);
-            box-shadow: 0 0 20px rgba(255,51,85,0.5), inset 0 0 15px rgba(255,51,85,0.1);
-        }
-
-        #hud-swiatlo.zielone {
-            border-color: var(--green);
-            box-shadow: 0 0 20px rgba(0,255,136,0.5), inset 0 0 15px rgba(0,255,136,0.1);
-        }
-
-        /* Odliczanie */
-        #hud-licznik {
-            flex: 1;
-        }
-
-        #hud-nazwa-skrzyzowania {
-            font-size: 11px;
-            color: #666;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            margin-bottom: 2px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        #hud-czas {
-            font-family: 'Share Tech Mono', monospace;
-            font-size: 38px;
-            font-weight: bold;
-            line-height: 1;
-            transition: color 0.3s;
-        }
-
+        body { font-family: 'Rajdhani', sans-serif; background: var(--bg); color: white; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
+        #hud { background: var(--panel); border-bottom: 1px solid var(--border); padding: 8px 12px; display: flex; flex-direction: column; gap: 6px; position: relative; z-index: 100; }
+        #hud::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--blue), transparent); }
+        #hud-top { display: flex; justify-content: space-between; align-items: center; }
+        #app-nazwa { font-family: 'Share Tech Mono', monospace; font-size: 13px; color: var(--blue); letter-spacing: 3px; text-transform: uppercase; }
+        #hud-dystans { font-family: 'Share Tech Mono', monospace; font-size: 12px; color: #aaa; letter-spacing: 1px; }
+        #hud-dystans span { color: var(--yellow); font-size: 15px; font-weight: bold; }
+        #hud-main { display: flex; align-items: center; gap: 10px; }
+        #hud-swiatlo { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; flex-shrink: 0; background: #111; border: 2px solid #333; transition: all 0.3s ease; }
+        #hud-swiatlo.czerwone { border-color: var(--red); box-shadow: 0 0 20px rgba(255,51,85,0.5), inset 0 0 15px rgba(255,51,85,0.1); }
+        #hud-swiatlo.zielone { border-color: var(--green); box-shadow: 0 0 20px rgba(0,255,136,0.5), inset 0 0 15px rgba(0,255,136,0.1); }
+        #hud-licznik { flex: 1; }
+        #hud-nazwa-skrzyzowania { font-size: 11px; color: #666; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        #hud-czas { font-family: 'Share Tech Mono', monospace; font-size: 38px; font-weight: bold; line-height: 1; transition: color 0.3s; }
         #hud-czas.czerwone { color: var(--red); }
         #hud-czas.zielone { color: var(--green); }
         #hud-czas.brak { color: #444; }
-
-        #hud-opis {
-            font-size: 11px;
-            color: #555;
-            margin-top: 2px;
-        }
-
-        /* Pasek postępu */
-        #hud-pasek-container {
-            height: 3px;
-            background: #1a1a2e;
-            border-radius: 2px;
-            overflow: hidden;
-            margin-top: 4px;
-        }
-
-        #hud-pasek {
-            height: 100%;
-            border-radius: 2px;
-            transition: width 1s linear, background 0.3s;
-        }
-
-        /* Przyciski akcji HUD */
-        #hud-akcje {
-            display: flex;
-            gap: 6px;
-            justify-content: flex-end;
-        }
-
-        .btn-hud {
-            padding: 4px 10px;
-            border: 1px solid var(--border);
-            background: rgba(0,212,255,0.05);
-            color: var(--blue);
-            border-radius: 20px;
-            font-size: 11px;
-            cursor: pointer;
-            font-family: 'Rajdhani', sans-serif;
-            font-weight: 600;
-            letter-spacing: 1px;
-            transition: all 0.2s;
-        }
-
-        .btn-hud:hover, .btn-hud.aktywny {
-            background: rgba(0,212,255,0.15);
-            border-color: var(--blue);
-        }
-
-        .btn-hud.zielony {
-            border-color: rgba(0,255,136,0.3);
-            color: var(--green);
-            background: rgba(0,255,136,0.05);
-        }
-
-        .btn-hud.zielony:hover, .btn-hud.zielony.aktywny {
-            background: rgba(0,255,136,0.15);
-        }
-
-        /* Przyciski korekty w HUD */
-        #hud-korekta {
-            display: none;
-            gap: 6px;
-        }
-
-        .btn-korekta-hud {
-            flex: 1;
-            padding: 6px;
-            border: none;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 700;
-            cursor: pointer;
-            font-family: 'Rajdhani', sans-serif;
-            letter-spacing: 1px;
-        }
-
+        #hud-opis { font-size: 13px; color: #aaa; margin-top: 2px; font-weight: 600; }
+        #hud-pasek-container { height: 3px; background: #1a1a2e; border-radius: 2px; overflow: hidden; margin-top: 4px; }
+        #hud-pasek { height: 100%; border-radius: 2px; transition: width 1s linear, background 0.3s; }
+        #hud-akcje { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
+        .btn-hud { padding: 4px 10px; border: 1px solid var(--border); background: rgba(0,212,255,0.05); color: var(--blue); border-radius: 20px; font-size: 11px; cursor: pointer; font-family: 'Rajdhani', sans-serif; font-weight: 600; letter-spacing: 1px; transition: all 0.2s; }
+        .btn-hud:hover, .btn-hud.aktywny { background: rgba(0,212,255,0.15); border-color: var(--blue); }
+        .btn-hud.zielony { border-color: rgba(0,255,136,0.3); color: var(--green); background: rgba(0,255,136,0.05); }
+        #hud-korekta { display: none; gap: 6px; }
+        .btn-korekta-hud { flex: 1; padding: 6px; border: none; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: 'Rajdhani', sans-serif; letter-spacing: 1px; }
         #bkh-czerwone { background: rgba(255,51,85,0.15); color: var(--red); border: 1px solid rgba(255,51,85,0.3); }
         #bkh-zielone { background: rgba(0,255,136,0.15); color: var(--green); border: 1px solid rgba(0,255,136,0.3); }
-
-        /* ===== MAPA ===== */
-        #mapa {
-            flex: 1;
-            width: 100%;
-        }
-
-        /* ===== MODALS ===== */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85);
-            z-index: 99999;
-            justify-content: center;
-            align-items: center;
-            backdrop-filter: blur(4px);
-        }
-
+        #mapa { flex: 1; width: 100%; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 99999; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
         .modal.aktywny { display: flex; }
-
-        .modal-box {
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 24px;
-            width: 320px;
-            text-align: center;
-            max-height: 85vh;
-            overflow-y: auto;
-        }
-
-        .modal-box::before {
-            content: '';
-            display: block;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, var(--blue), transparent);
-            margin: -24px -24px 20px -24px;
-            border-radius: 16px 16px 0 0;
-        }
-
-        .modal-box h3 {
-            font-family: 'Share Tech Mono', monospace;
-            color: var(--blue);
-            font-size: 14px;
-            letter-spacing: 3px;
-            margin-bottom: 16px;
-            text-transform: uppercase;
-        }
-
-        .modal-btn {
-            display: block;
-            width: 100%;
-            margin: 6px 0;
-            padding: 11px;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            font-size: 13px;
-            cursor: pointer;
-            font-family: 'Rajdhani', sans-serif;
-            font-weight: 600;
-            letter-spacing: 1px;
-            transition: all 0.2s;
-        }
-
+        .modal-box { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 24px; width: 320px; text-align: center; max-height: 85vh; overflow-y: auto; }
+        .modal-box::before { content: ''; display: block; height: 2px; background: linear-gradient(90deg, transparent, var(--blue), transparent); margin: -24px -24px 20px -24px; border-radius: 16px 16px 0 0; }
+        .modal-box h3 { font-family: 'Share Tech Mono', monospace; color: var(--blue); font-size: 14px; letter-spacing: 3px; margin-bottom: 16px; text-transform: uppercase; }
+        .modal-btn { display: block; width: 100%; margin: 6px 0; padding: 11px; border: 1px solid var(--border); border-radius: 10px; font-size: 13px; cursor: pointer; font-family: 'Rajdhani', sans-serif; font-weight: 600; letter-spacing: 1px; transition: all 0.2s; }
         .modal-btn.primary { background: rgba(0,212,255,0.1); color: var(--blue); }
-        .modal-btn.primary:hover { background: rgba(0,212,255,0.2); }
         .modal-btn.success { background: rgba(0,255,136,0.1); color: var(--green); }
-        .modal-btn.success:hover { background: rgba(0,255,136,0.2); }
         .modal-btn.danger { background: rgba(255,51,85,0.1); color: var(--red); }
-        .modal-btn.danger:hover { background: rgba(255,51,85,0.2); }
         .modal-btn.warning { background: rgba(255,204,0,0.1); color: var(--yellow); }
-        .modal-btn.warning:hover { background: rgba(255,204,0,0.2); }
         .modal-btn.neutral { background: rgba(255,255,255,0.05); color: #888; }
-        .modal-btn.neutral:hover { background: rgba(255,255,255,0.1); color: white; }
-
-        .input-adres {
-            width: 100%;
-            padding: 10px 12px;
-            margin: 5px 0;
-            background: rgba(0,212,255,0.05);
-            color: white;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            font-size: 13px;
-            font-family: 'Rajdhani', sans-serif;
-        }
-
+        .input-adres { width: 100%; padding: 10px 12px; margin: 5px 0; background: rgba(0,212,255,0.05); color: white; border: 1px solid var(--border); border-radius: 10px; font-size: 13px; font-family: 'Rajdhani', sans-serif; }
         .input-adres::placeholder { color: #444; }
-        .input-adres:focus { outline: none; border-color: var(--blue); }
-
-        .trasa-row {
-            display: flex;
-            align-items: center;
-            margin-bottom: 6px;
-            gap: 5px;
-        }
-
-        .btn-trasa-lista {
-            flex: 1;
-            padding: 10px;
-            background: rgba(0,212,255,0.08);
-            color: var(--blue);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            font-size: 12px;
-            cursor: pointer;
-            text-align: left;
-            font-family: 'Rajdhani', sans-serif;
-            font-weight: 600;
-        }
-
-        .btn-trasa-edytuj {
-            background: rgba(255,204,0,0.1);
-            color: var(--yellow);
-            border: 1px solid rgba(255,204,0,0.3);
-            border-radius: 8px;
-            padding: 6px 9px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-
-        .btn-trasa-usun {
-            background: rgba(255,51,85,0.1);
-            color: var(--red);
-            border: 1px solid rgba(255,51,85,0.3);
-            border-radius: 8px;
-            padding: 6px 9px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-
-        #status-routing {
-            font-size: 12px;
-            color: var(--yellow);
-            margin: 8px 0;
-            min-height: 18px;
-            font-family: 'Share Tech Mono', monospace;
-        }
-
-        #info-edycja {
-            display: none;
-            text-align: center;
-            padding: 4px 12px;
-            background: rgba(255,204,0,0.1);
-            border-bottom: 1px solid rgba(255,204,0,0.3);
-            color: var(--yellow);
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 1px;
-        }
-
-        /* Panel pomiaru */
-        #panel-pomiar {
-            display: none;
-            position: fixed;
-            bottom: 0; left: 0;
-            width: 100%;
-            background: var(--panel);
-            border-top: 1px solid var(--border);
-            padding: 16px;
-            z-index: 9999;
-            text-align: center;
-        }
-
-        #panel-pomiar h3 {
-            font-family: 'Share Tech Mono', monospace;
-            color: var(--blue);
-            font-size: 12px;
-            letter-spacing: 2px;
-            margin-bottom: 10px;
-        }
-
-        .btn-pomiar {
-            padding: 12px 16px;
-            border: none;
-            border-radius: 10px;
-            font-size: 13px;
-            font-weight: 700;
-            cursor: pointer;
-            margin: 4px;
-            font-family: 'Rajdhani', sans-serif;
-            letter-spacing: 1px;
-        }
-
+        .trasa-row { display: flex; align-items: center; margin-bottom: 6px; gap: 5px; }
+        .btn-trasa-lista { flex: 1; padding: 10px; background: rgba(0,212,255,0.08); color: var(--blue); border: 1px solid var(--border); border-radius: 10px; font-size: 12px; cursor: pointer; text-align: left; font-family: 'Rajdhani', sans-serif; font-weight: 600; }
+        .btn-trasa-edytuj { background: rgba(255,204,0,0.1); color: var(--yellow); border: 1px solid rgba(255,204,0,0.3); border-radius: 8px; padding: 6px 9px; cursor: pointer; font-size: 12px; }
+        .btn-trasa-usun { background: rgba(255,51,85,0.1); color: var(--red); border: 1px solid rgba(255,51,85,0.3); border-radius: 8px; padding: 6px 9px; cursor: pointer; font-size: 12px; }
+        #status-routing { font-size: 12px; color: var(--yellow); margin: 8px 0; min-height: 18px; font-family: 'Share Tech Mono', monospace; }
+        #info-edycja { display: none; text-align: center; padding: 4px 12px; background: rgba(255,204,0,0.1); border-bottom: 1px solid rgba(255,204,0,0.3); color: var(--yellow); font-size: 11px; font-weight: 600; letter-spacing: 1px; }
+        #panel-pomiar { display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: var(--panel); border-top: 1px solid var(--border); padding: 16px; z-index: 9999; text-align: center; }
+        #panel-pomiar h3 { font-family: 'Share Tech Mono', monospace; color: var(--blue); font-size: 12px; letter-spacing: 2px; margin-bottom: 10px; }
+        .btn-pomiar { padding: 12px 16px; border: none; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; margin: 4px; font-family: 'Rajdhani', sans-serif; letter-spacing: 1px; }
         #bpm-czerwone { background: rgba(255,51,85,0.15); color: var(--red); border: 1px solid rgba(255,51,85,0.4); }
         #bpm-zielone { background: rgba(0,255,136,0.15); color: var(--green); border: 1px solid rgba(0,255,136,0.4); }
         #bpm-zapisz { background: rgba(0,212,255,0.15); color: var(--blue); border: 1px solid rgba(0,212,255,0.4); display: none; }
-
         #log-pomiarow { font-size: 11px; color: #555; margin: 6px 0; max-height: 60px; overflow-y: auto; font-family: 'Share Tech Mono', monospace; }
-
         #bpm-zamknij { background: rgba(255,255,255,0.05); color: #666; border: 1px solid #333; margin-top: 4px; }
-
-        /* Animacja pulsu */
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
-        }
-
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
         .pulsuje { animation: pulse 1s infinite; }
     </style>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -421,18 +80,13 @@
 </head>
 <body>
 
-<!-- INFO EDYCJA -->
 <div id="info-edycja">✏️ TRYB EDYCJI — kliknij sygnalizatory aby dodać/usunąć z trasy</div>
 
-<!-- HUD GÓRNY -->
 <div id="hud">
-    <!-- Wiersz 1: nazwa + dystans -->
     <div id="hud-top">
         <div id="app-nazwa">GreenWave</div>
         <div id="hud-dystans">NASTĘPNE: <span id="hud-m">---</span> m</div>
     </div>
-
-    <!-- Wiersz 2: światło + odliczanie -->
     <div id="hud-main">
         <div id="hud-swiatlo">⚫</div>
         <div id="hud-licznik">
@@ -444,28 +98,22 @@
             </div>
         </div>
     </div>
-
-    <!-- Wiersz 3: korekta -->
     <div id="hud-korekta" style="display:none;gap:6px;">
         <button class="btn-korekta-hud" id="bkh-czerwone" onclick="koryguj('czerwone')">🔴 CZERWONE</button>
         <button class="btn-korekta-hud" id="bkh-zielone" onclick="koryguj('zielone')">🟢 ZIELONE</button>
     </div>
-
-    <!-- Wiersz 4: przyciski -->
     <div id="hud-akcje">
         <button class="btn-hud zielony" id="btn-mowa" onclick="wlaczMowe()">🔇 GŁOS</button>
         <button class="btn-hud" onclick="przełączTrybZaznaczania()" id="btn-trasa">🗺 TRASA</button>
         <button class="btn-hud" id="btn-zapisz-trase" onclick="zapiszTrase()" style="display:none;">💾 ZAPISZ</button>
         <button class="btn-hud" onclick="otworzModalTras()">📋 MOJE</button>
-       <button class="btn-hud" onclick="otworzModalRouting()">🧭 WYZNACZ</button>
-<button class="btn-hud" id="btn-symulacja" onclick="aktywujSymulacje()" style="border-color:rgba(255,204,0,0.3);color:var(--yellow);background:rgba(255,204,0,0.05);">⚡ SYMULACJA</button>
+        <button class="btn-hud" onclick="otworzModalRouting()">🧭 WYZNACZ</button>
+        <button class="btn-hud" id="btn-symulacja" onclick="aktywujSymulacje()" style="border-color:rgba(255,204,0,0.3);color:var(--yellow);background:rgba(255,204,0,0.05);">⚡ SYMULACJA</button>
     </div>
 </div>
 
-<!-- MAPA -->
 <div id="mapa"></div>
 
-<!-- MODAL: Moje trasy -->
 <div class="modal" id="modal-trasy">
     <div class="modal-box">
         <h3>📋 Moje trasy</h3>
@@ -477,7 +125,6 @@
     </div>
 </div>
 
-<!-- MODAL: Routing -->
 <div class="modal" id="modal-routing">
     <div class="modal-box">
         <h3>🧭 Wyznacz trasę</h3>
@@ -492,7 +139,6 @@
     </div>
 </div>
 
-<!-- PANEL POMIARU -->
 <div id="panel-pomiar">
     <h3 id="panel-pomiar-nazwa">POMIAR ŚWIATEŁ</h3>
     <div id="log-pomiarow"></div>
@@ -505,17 +151,12 @@
 </div>
 
 <script>
-    // ===== MAPA =====
     const mapa = L.map('mapa').setView([50.0614, 19.9366], 14);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap'
-    }).addTo(mapa);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(mapa);
 
-    // ===== ZMIENNE =====
     let aktualneSkrzyzowanie = null;
     let pomiary = [];
     let interwał = null;
-    let interwałGPS = null;
     let mowaWlaczona = false;
     let ostatnioMowiono = null;
     let trybZaznaczania = false;
@@ -525,179 +166,63 @@
     let liniaTrasy = null;
     let licznikPosrednich = 0;
     let pozycjaGPS = null;
-    let calkowityCykl = 0;
+    let markerGPS = null;
 
     // ===== DANE SKRZYŻOWAŃ =====
-    function generujLosoweWaRunki() {
-    const teraz = new Date();
-    const losowyCykl = Math.floor(Math.random() * 60) + 60;
-    const losoweZielone = Math.floor(Math.random() * 30) + 15;
-    const losoweOffset = Math.floor(Math.random() * losowyCykl);
-    const startSek = (teraz.getHours() * 3600 + teraz.getMinutes() * 60 + teraz.getSeconds() - losoweOffset + 86400) % 86400;
-    return {
-        startZielone: {
-            h: Math.floor(startSek / 3600),
-            m: Math.floor((startSek % 3600) / 60),
-            s: startSek % 60
-        },
-        czasZielone: losoweZielone,
-        czasCzerwone: losowyCykl - losoweZielone,
-        ostatniaKorekta: null,
-        ostatniKolorKorekty: null,
-        symulowane: true
-    };
-}
-
-const daneSkrzyzowan = {
-    'wielicka_teligi': {
-        startZielone: { h: 13, m: 50, s: 16 },
-        czasZielone: 15,
-        czasCzerwone: 96,
-        ostatniaKorekta: null,
-        ostatniKolorKorekty: null
+    function generujLosoweDane() {
+        const teraz = new Date();
+        const cykl = Math.floor(Math.random() * 60) + 60;
+        const zielone = Math.floor(Math.random() * 30) + 15;
+        const offset = Math.floor(Math.random() * cykl);
+        const startSek = (teraz.getHours() * 3600 + teraz.getMinutes() * 60 + teraz.getSeconds() - offset + 86400) % 86400;
+        return {
+            startZielone: { h: Math.floor(startSek / 3600), m: Math.floor((startSek % 3600) / 60), s: startSek % 60 },
+            czasZielone: zielone,
+            czasCzerwone: cykl - zielone,
+            ostatniaKorekta: null,
+            ostatniKolorKorekty: null,
+            symulowane: true
+        };
     }
-};
+
+    const daneSkrzyzowan = {
+        'wielicka_teligi': {
+            startZielone: { h: 13, m: 50, s: 16 },
+            czasZielone: 15,
+            czasCzerwone: 96,
+            ostatniaKorekta: null,
+            ostatniKolorKorekty: null
+        }
+    };
+
+    function aktywujSymulacje() {
+        let liczba = 0;
+        Object.keys(warstwyMarkerow).forEach(id => {
+            if (!daneSkrzyzowan[id] && warstwyMarkerow[id].naTransie) {
+                daneSkrzyzowan[id] = generujLosoweDane();
+                liczba++;
+            }
+        });
+        alert('✅ Symulacja aktywna — ' + liczba + ' skrzyżowań otrzymało losowe dane');
+    }
 
     // ===== GPS =====
-   let markerGPS = null;
-let poprzedniaPozycja = null;
-let aktualnyKierunek = 0;
-
-mapa.locate({ watch: true, enableHighAccuracy: true });
-mapa.on('locationfound', function(e) {
-    const nowaPozycja = e.latlng;
-
-    // Oblicz kierunek jazdy
-    if (poprzedniaPozycja) {
-        const dLng = nowaPozycja.lng - poprzedniaPozycja.lng;
-        const dLat = nowaPozycja.lat - poprzedniaPozycja.lat;
-        const odleglosc = Math.sqrt(dLat*dLat + dLng*dLng);
-
-        // Aktualizuj kierunek tylko gdy się poruszamy
-        if (odleglosc > 0.00005) {
-            const kat = Math.atan2(dLng, dLat) * 180 / Math.PI;
-            aktualnyKierunek = kat;
-            // Obróć mapę
-            let markerGPS = null;
-let poprzedniaPozycja = null;
-let aktualnyKierunek = 0;
-
-mapa.locate({ watch: true, enableHighAccuracy: true });
-mapa.on('locationfound', function(e) {
-    const nowaPozycja = e.latlng;
-    poprzedniaPozycja = nowaPozycja;
-    pozycjaGPS = nowaPozycja;
-    if (markerGPS) {
-        markerGPS.setLatLng(nowaPozycja);
-    } else {
-        markerGPS = L.circleMarker(nowaPozycja, {
-            radius: 10, fillColor: "#00d4ff", color: "#fff", weight: 3, fillOpacity: 1
-        }).addTo(mapa);
-        mapa.setView(nowaPozycja, 16);
-    }
-    mapa.setView(nowaPozycja, mapa.getZoom(), { animate: true });
-    function aktualizujHUD() {
-    if (!pozycjaGPS) return;
-
-    let najblizszyId = null;
-    let minDyst = Infinity;
-
-    Object.keys(warstwyMarkerow).forEach(id => {
-        if (!warstwyMarkerow[id].naTransie) return;
-        const ll = warstwyMarkerow[id].layer.getLatLng();
-        const d = dystans(pozycjaGPS.lat, pozycjaGPS.lng, ll.lat, ll.lng);
-        if (d < minDyst && d < 500) {
-            minDyst = d;
-            najblizszyId = id;
+    mapa.locate({ watch: true, enableHighAccuracy: true });
+    mapa.on('locationfound', function(e) {
+        pozycjaGPS = e.latlng;
+        if (markerGPS) {
+            markerGPS.setLatLng(e.latlng);
+        } else {
+            markerGPS = L.circleMarker(e.latlng, {
+                radius: 10, fillColor: "#00d4ff", color: "#fff", weight: 3, fillOpacity: 1
+            }).addTo(mapa);
+            mapa.setView(e.latlng, 16);
         }
+        mapa.setView(e.latlng, mapa.getZoom(), { animate: true });
+        aktualizujHUD();
     });
 
-    if (najblizszyId) {
-        document.getElementById('hud-m').innerText = Math.round(minDyst);
-
-        const dane = daneSkrzyzowan[najblizszyId];
-        if (dane) {
-            const stan = obliczStan(dane);
-            const marker = warstwyMarkerow[najblizszyId];
-            const nazwa = marker.nazwa || 'Sygnalizator';
-
-            // Oblicz optymalną prędkość
-            let komunikatPredkosci = '';
-            if (stan.kolor === 'czerwone') {
-                // Światło jest czerwone — oblicz czy zdążysz na następne zielone
-                const sekundyDoZielonego = stan.pozostalo;
-                const predkoscMs = minDyst / sekundyDoZielonego;
-                const predkoscKmh = Math.round(predkoscMs * 3.6);
-
-                if (predkoscKmh >= 10 && predkoscKmh <= 90) {
-                    komunikatPredkosci = `🚗 Jedź ${predkoscKmh} km/h → złapiesz zielone`;
-                } else if (predkoscKmh < 10) {
-                    komunikatPredkosci = `⏸ Zatrzymaj się — za blisko`;
-                } else {
-                    komunikatPredkosci = `⚡ Za szybko — poczekaj na kolejne zielone`;
-                }
-            } else {
-                // Światło jest zielone
-                const sekundyDoKonca = stan.pozostalo;
-                const predkoscMs = minDyst / sekundyDoKonca;
-                const predkoscKmh = Math.round(predkoscMs * 3.6);
-
-                if (predkoscKmh <= 90 && predkoscKmh >= 10) {
-                    komunikatPredkosci = `🟢 Jedź ${predkoscKmh} km/h → zdążysz na zielone`;
-                } else if (predkoscKmh < 10) {
-                    komunikatPredkosci = `🟢 Zielone — jedź normalnie`;
-                } else {
-                    komunikatPredkosci = `🔴 Nie zdążysz — zwolnij i poczekaj`;
-                }
-            }
-
-            // Wyświetl komunikat prędkości w HUD
-            document.getElementById('hud-opis').innerText = komunikatPredkosci;
-
-            // Mów komunikat co zmianę
-            if (komunikatPredkosci && komunikatPredkosci !== ostatnioMowiono) {
-                if (stan.kolor === 'czerwone' && stan.pozostalo % 15 === 0) {
-                    mow(komunikatPredkosci.replace(/[🚗⚡⏸🟢🔴]/g, ''));
-                }
-            }
-
-            if (najblizszyId !== aktualneSkrzyzowanie?.id) {
-                aktywujSkrzyzowanie({ id: najblizszyId, nazwa }, dane);
-            }
-        }
-    } else {
-        document.getElementById('hud-m').innerText = '---';
-        document.getElementById('hud-opis').innerText = '';
-    }
-}
-});
-        }
-    }
-
-    poprzedniaPozycja = nowaPozycja;
-    pozycjaGPS = nowaPozycja;
-
-    if (markerGPS) {
-        markerGPS.setLatLng(nowaPozycja);
-    } else {
-        // Strzałka zamiast kropki — pokazuje kierunek
-        markerGPS = L.marker(nowaPozycja, {
-            icon: L.divIcon({
-                html: '<div style="width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;border-bottom:20px solid #00d4ff;transform-origin:center bottom;"></div>',
-                iconSize: [16, 20],
-                iconAnchor: [8, 10],
-                className: ''
-            })
-        }).addTo(mapa);
-        mapa.setView(nowaPozycja, 17);
-    }
-
-    // Centruj mapę na pozycji
-    mapa.setView(nowaPozycja, mapa.getZoom(), { animate: true });
-    aktualizujHUD();
-});
-
-    // ===== FUNKCJA DYSTANSU =====
+    // ===== DYSTANS =====
     function dystans(lat1, lng1, lat2, lng2) {
         const R = 6371000;
         const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -706,11 +231,10 @@ mapa.on('locationfound', function(e) {
         return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     }
 
-    // ===== AKTUALIZACJA HUD =====
+    // ===== HUD =====
     function aktualizujHUD() {
         if (!pozycjaGPS) return;
 
-        // Znajdź najbliższy sygnalizator NA TRASIE
         let najblizszyId = null;
         let minDyst = Infinity;
 
@@ -724,19 +248,41 @@ mapa.on('locationfound', function(e) {
             }
         });
 
-        // Aktualizuj dystans
         if (najblizszyId) {
             document.getElementById('hud-m').innerText = Math.round(minDyst);
+            const dane = daneSkrzyzowan[najblizszyId];
 
-            // Jeśli zbliżamy się do nowego skrzyżowania
-            if (najblizszyId !== aktualneSkrzyzowanie?.id) {
-                const dane = daneSkrzyzowan[najblizszyId];
-                if (dane) {
-                    // Znajdź nazwę
-                    const marker = warstwyMarkerow[najblizszyId];
-                    const nazwa = marker.nazwa || 'Sygnalizator';
-                    aktywujSkrzyzowanie({ id: najblizszyId, nazwa }, dane);
+            if (dane && najblizszyId !== aktualneSkrzyzowanie?.id) {
+                const nazwa = warstwyMarkerow[najblizszyId].nazwa || 'Sygnalizator';
+                aktywujSkrzyzowanie({ id: najblizszyId, nazwa }, dane);
+            }
+
+            // Oblicz optymalną prędkość
+            if (dane) {
+                const stan = obliczStan(dane);
+                const sekundy = stan.pozostalo;
+                const predkoscMs = minDyst / sekundy;
+                const predkoscKmh = Math.round(predkoscMs * 3.6);
+
+                let komunikat = '';
+                if (stan.kolor === 'czerwone') {
+                    if (predkoscKmh >= 10 && predkoscKmh <= 90) {
+                        komunikat = `🚗 Jedź ${predkoscKmh} km/h → złapiesz zielone`;
+                    } else if (predkoscKmh < 10) {
+                        komunikat = `⏸ Zatrzymaj się`;
+                    } else {
+                        komunikat = `⏳ Poczekaj na kolejne zielone`;
+                    }
+                } else {
+                    if (predkoscKmh <= 90 && predkoscKmh >= 10) {
+                        komunikat = `🟢 Jedź ${predkoscKmh} km/h → zdążysz`;
+                    } else if (predkoscKmh < 10) {
+                        komunikat = `🟢 Jedź normalnie`;
+                    } else {
+                        komunikat = `🔴 Nie zdążysz — zwolnij`;
+                    }
                 }
+                document.getElementById('hud-opis').innerText = komunikat;
             }
         } else {
             document.getElementById('hud-m').innerText = '---';
@@ -747,51 +293,28 @@ mapa.on('locationfound', function(e) {
         aktualneSkrzyzowanie = skrzyzowanie;
         document.getElementById('hud-nazwa-skrzyzowania').innerText = skrzyzowanie.nazwa;
         document.getElementById('hud-korekta').style.display = 'flex';
-
         if (interwał) clearInterval(interwał);
-
-        calkowityCykl = dane.czasZielone + dane.czasCzerwone;
 
         function aktualizuj() {
             const stan = obliczStan(dane);
             const swiatlo = document.getElementById('hud-swiatlo');
             const czas = document.getElementById('hud-czas');
             const pasek = document.getElementById('hud-pasek');
-
             swiatlo.className = stan.kolor;
             swiatlo.innerText = stan.kolor === 'zielone' ? '🟢' : '🔴';
             czas.className = stan.kolor;
             czas.innerText = stan.pozostalo;
-
-            document.getElementById('hud-opis').innerText = stan.kolor === 'zielone'
-                ? '▶ JEDŹ'
-                : '■ POCZEKAJ';
-
-            // Pasek postępu
             const procent = (stan.pozostalo / (stan.kolor === 'zielone' ? dane.czasZielone : dane.czasCzerwone)) * 100;
             pasek.style.width = procent + '%';
             pasek.style.background = stan.kolor === 'zielone' ? 'var(--green)' : 'var(--red)';
-
-            // Mowa
             if (stan.kolor === 'czerwone' && stan.pozostalo === 10) mow('Za 10 sekund zielone');
             if (stan.kolor === 'czerwone' && stan.pozostalo === 5) mow('Za 5 sekund zmiana światła');
             if (stan.kolor === 'czerwone' && stan.pozostalo === 3) mow('Za 3 sekundy zielone');
             if (stan.kolor === 'zielone' && stan.pozostalo === 3) mow('Uwaga, za 3 sekundy czerwone');
         }
-
         aktualizuj();
         interwał = setInterval(aktualizuj, 1000);
         setInterval(aktualizujHUD, 3000);
-    }
-
-    // ===== KOREKTA =====
-    function koryguj(kolor) {
-        const dane = daneSkrzyzowan[aktualneSkrzyzowanie?.id];
-        if (!dane) return;
-        dane.ostatniaKorekta = Date.now();
-        dane.ostatniKolorKorekty = kolor;
-        ostatnioMowiono = null;
-        mow(kolor === 'zielone' ? 'Zsynchronizowano. Zielone.' : 'Zsynchronizowano. Czerwone.');
     }
 
     // ===== OBLICZ STAN =====
@@ -800,9 +323,7 @@ mapa.on('locationfound', function(e) {
         const cykl = (dane.czasZielone + dane.czasCzerwone) * 1000;
         if (dane.ostatniaKorekta !== null) {
             const uplynelo = teraz - dane.ostatniaKorekta;
-            let pozycja = dane.ostatniKolorKorekty === 'zielone'
-                ? uplynelo % cykl
-                : (dane.czasZielone * 1000 + uplynelo) % cykl;
+            let pozycja = dane.ostatniKolorKorekty === 'zielone' ? uplynelo % cykl : (dane.czasZielone * 1000 + uplynelo) % cykl;
             const sek = Math.floor(pozycja / 1000);
             if (sek < dane.czasZielone) return { kolor: 'zielone', pozostalo: dane.czasZielone - sek };
             return { kolor: 'czerwone', pozostalo: dane.czasZielone + dane.czasCzerwone - sek };
@@ -814,6 +335,16 @@ mapa.on('locationfound', function(e) {
         const poz = sek % (dane.czasZielone + dane.czasCzerwone);
         if (poz < dane.czasZielone) return { kolor: 'zielone', pozostalo: dane.czasZielone - poz };
         return { kolor: 'czerwone', pozostalo: dane.czasZielone + dane.czasCzerwone - poz };
+    }
+
+    // ===== KOREKTA =====
+    function koryguj(kolor) {
+        const dane = daneSkrzyzowan[aktualneSkrzyzowanie?.id];
+        if (!dane) return;
+        dane.ostatniaKorekta = Date.now();
+        dane.ostatniKolorKorekty = kolor;
+        ostatnioMowiono = null;
+        mow(kolor === 'zielone' ? 'Zsynchronizowano. Zielone.' : 'Zsynchronizowano. Czerwone.');
     }
 
     // ===== MOWA =====
@@ -840,23 +371,8 @@ mapa.on('locationfound', function(e) {
         msg.rate = 0.9;
         window.speechSynthesis.speak(msg);
     }
-function aktywujSymulacje() {
-    Object.keys(warstwyMarkerow).forEach(id => {
-        if (!daneSkrzyzowan[id] && warstwyMarkerow[id].naTransie) {
-            daneSkrzyzowan[id] = generujLosoweWaRunki();
-        }
-    });
-    alert('✅ Symulacja aktywna — wszystkie skrzyżowania na trasie mają losowe dane');
-}
-    // ===== PANEL POMIARU =====
-    function aktywujSymulacje() {
-    Object.keys(warstwyMarkerow).forEach(id => {
-        if (!daneSkrzyzowan[id] && warstwyMarkerow[id].naTransie) {
-            daneSkrzyzowan[id] = generujLosoweWaRunki();
-        }
-    });
-    alert('✅ Symulacja aktywna — wszystkie skrzyżowania na trasie mają losowe dane');
-}
+
+    // ===== POMIAR =====
     function otworzPomiar(skrzyzowanie) {
         aktualneSkrzyzowanie = skrzyzowanie;
         pomiary = [];
@@ -876,8 +392,7 @@ function aktywujSymulacje() {
         const teraz = Date.now();
         pomiary.push({ kolor, czas: teraz });
         const godzinaStr = new Date(teraz).toLocaleTimeString('pl-PL');
-        const ikona = kolor === 'czerwone' ? '🔴' : '🟢';
-        document.getElementById('log-pomiarow').innerHTML += ikona + ' ' + godzinaStr + '<br>';
+        document.getElementById('log-pomiarow').innerHTML += (kolor === 'czerwone' ? '🔴' : '🟢') + ' ' + godzinaStr + '<br>';
         if (pomiary.length >= 2) {
             document.getElementById('bpm-zapisz').style.display = 'inline-block';
             const roznica = Math.round((pomiary[pomiary.length-1].czas - pomiary[pomiary.length-2].czas) / 1000);
@@ -918,11 +433,8 @@ function aktywujSymulacje() {
                 layer.setStyle({ fillColor: warstwyMarkerow[id].naTransie ? "#00ff88" : "#ff3355" });
             } else {
                 const dane = daneSkrzyzowan[id];
-                if (dane) {
-                    aktywujSkrzyzowanie({ id, nazwa }, dane);
-                } else {
-                    otworzPomiar({ id, nazwa });
-                }
+                if (dane) aktywujSkrzyzowanie({ id, nazwa }, dane);
+                else otworzPomiar({ id, nazwa });
             }
         });
         warstwyMarkerow[id] = { layer, naTransie: false, nazwa };
@@ -949,25 +461,17 @@ function aktywujSymulacje() {
                             layer.setStyle({ fillColor: warstwyMarkerow[id].naTransie ? "#00ff88" : "#ffcc00" });
                         } else {
                             const dane = daneSkrzyzowan[id];
-                            if (dane) {
-                                aktywujSkrzyzowanie({ id, nazwa }, dane);
-                            } else {
-                                otworzPomiar({ id, nazwa });
-                            }
+                            if (dane) aktywujSkrzyzowanie({ id, nazwa }, dane);
+                            else otworzPomiar({ id, nazwa });
                         }
                     });
                 }
             }).addTo(mapa);
         });
 
-    // ===== SYSTEM TRAS =====
-    function wczytajTrasy() {
-        return JSON.parse(localStorage.getItem('trasy') || '{}');
-    }
-
-    function zapiszTrasy(trasy) {
-        localStorage.setItem('trasy', JSON.stringify(trasy));
-    }
+    // ===== TRASY =====
+    function wczytajTrasy() { return JSON.parse(localStorage.getItem('trasy') || '{}'); }
+    function zapiszTrasy(trasy) { localStorage.setItem('trasy', JSON.stringify(trasy)); }
 
     function eksportujTrasy() {
         const trasy = wczytajTrasy();
@@ -986,12 +490,8 @@ function aktywujSymulacje() {
         } catch(e) { alert('❌ Błędny kod'); }
     }
 
-    function pobierzZaznaczone() {
-        return Object.keys(warstwyMarkerow).filter(id => warstwyMarkerow[id].naTransie);
-    }
-
     function zapiszTrase() {
-        const punkty = pobierzZaznaczone();
+        const punkty = Object.keys(warstwyMarkerow).filter(id => warstwyMarkerow[id].naTransie);
         if (!punkty.length) { alert('Nie zaznaczono sygnalizatorów!'); return; }
         const nazwa = trybEdycji ? edytowanaNazwaTrasy : prompt('Nazwa trasy:', 'Trasa ' + (Object.keys(wczytajTrasy()).length + 1));
         if (!nazwa) return;
@@ -1045,16 +545,13 @@ function aktywujSymulacje() {
         document.getElementById('modal-trasy').classList.add('aktywny');
     }
 
-    function zamknijModal(id) {
-        document.getElementById(id).classList.remove('aktywny');
-    }
+    function zamknijModal(id) { document.getElementById(id).classList.remove('aktywny'); }
 
     function nowaTrasa() {
         zamknijModal('modal-trasy');
         Object.keys(warstwyMarkerow).forEach(id => {
             warstwyMarkerow[id].naTransie = false;
-            const r = !id.startsWith('osm_');
-            warstwyMarkerow[id].layer.setStyle({ fillColor: r ? "#ff3355" : "#ffcc00" });
+            warstwyMarkerow[id].layer.setStyle({ fillColor: id.startsWith('osm_') ? "#ffcc00" : "#ff3355" });
         });
         trybZaznaczania = true;
         document.getElementById('btn-trasa').innerText = '✅ ZAZNACZ';
@@ -1077,8 +574,7 @@ function aktywujSymulacje() {
         const punkty = wczytajTrasy()[nazwa] || [];
         Object.keys(warstwyMarkerow).forEach(id => {
             warstwyMarkerow[id].naTransie = false;
-            const r = !id.startsWith('osm_');
-            warstwyMarkerow[id].layer?.setStyle({ fillColor: r ? "#ff3355" : "#ffcc00" });
+            warstwyMarkerow[id].layer?.setStyle({ fillColor: id.startsWith('osm_') ? "#ffcc00" : "#ff3355" });
         });
         punkty.forEach(id => {
             if (warstwyMarkerow[id]) {
@@ -1101,9 +597,7 @@ function aktywujSymulacje() {
     }
 
     // ===== ROUTING =====
-    function otworzModalRouting() {
-        document.getElementById('modal-routing').classList.add('aktywny');
-    }
+    function otworzModalRouting() { document.getElementById('modal-routing').classList.add('aktywny'); }
 
     function dodajPunktPosredni() {
         licznikPosrednich++;

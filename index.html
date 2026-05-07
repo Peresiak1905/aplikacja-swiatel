@@ -575,7 +575,80 @@ mapa.on('locationfound', function(e) {
         mapa.setView(nowaPozycja, 16);
     }
     mapa.setView(nowaPozycja, mapa.getZoom(), { animate: true });
-    aktualizujHUD();
+    function aktualizujHUD() {
+    if (!pozycjaGPS) return;
+
+    let najblizszyId = null;
+    let minDyst = Infinity;
+
+    Object.keys(warstwyMarkerow).forEach(id => {
+        if (!warstwyMarkerow[id].naTransie) return;
+        const ll = warstwyMarkerow[id].layer.getLatLng();
+        const d = dystans(pozycjaGPS.lat, pozycjaGPS.lng, ll.lat, ll.lng);
+        if (d < minDyst && d < 500) {
+            minDyst = d;
+            najblizszyId = id;
+        }
+    });
+
+    if (najblizszyId) {
+        document.getElementById('hud-m').innerText = Math.round(minDyst);
+
+        const dane = daneSkrzyzowan[najblizszyId];
+        if (dane) {
+            const stan = obliczStan(dane);
+            const marker = warstwyMarkerow[najblizszyId];
+            const nazwa = marker.nazwa || 'Sygnalizator';
+
+            // Oblicz optymalną prędkość
+            let komunikatPredkosci = '';
+            if (stan.kolor === 'czerwone') {
+                // Światło jest czerwone — oblicz czy zdążysz na następne zielone
+                const sekundyDoZielonego = stan.pozostalo;
+                const predkoscMs = minDyst / sekundyDoZielonego;
+                const predkoscKmh = Math.round(predkoscMs * 3.6);
+
+                if (predkoscKmh >= 10 && predkoscKmh <= 90) {
+                    komunikatPredkosci = `🚗 Jedź ${predkoscKmh} km/h → złapiesz zielone`;
+                } else if (predkoscKmh < 10) {
+                    komunikatPredkosci = `⏸ Zatrzymaj się — za blisko`;
+                } else {
+                    komunikatPredkosci = `⚡ Za szybko — poczekaj na kolejne zielone`;
+                }
+            } else {
+                // Światło jest zielone
+                const sekundyDoKonca = stan.pozostalo;
+                const predkoscMs = minDyst / sekundyDoKonca;
+                const predkoscKmh = Math.round(predkoscMs * 3.6);
+
+                if (predkoscKmh <= 90 && predkoscKmh >= 10) {
+                    komunikatPredkosci = `🟢 Jedź ${predkoscKmh} km/h → zdążysz na zielone`;
+                } else if (predkoscKmh < 10) {
+                    komunikatPredkosci = `🟢 Zielone — jedź normalnie`;
+                } else {
+                    komunikatPredkosci = `🔴 Nie zdążysz — zwolnij i poczekaj`;
+                }
+            }
+
+            // Wyświetl komunikat prędkości w HUD
+            document.getElementById('hud-opis').innerText = komunikatPredkosci;
+
+            // Mów komunikat co zmianę
+            if (komunikatPredkosci && komunikatPredkosci !== ostatnioMowiono) {
+                if (stan.kolor === 'czerwone' && stan.pozostalo % 15 === 0) {
+                    mow(komunikatPredkosci.replace(/[🚗⚡⏸🟢🔴]/g, ''));
+                }
+            }
+
+            if (najblizszyId !== aktualneSkrzyzowanie?.id) {
+                aktywujSkrzyzowanie({ id: najblizszyId, nazwa }, dane);
+            }
+        }
+    } else {
+        document.getElementById('hud-m').innerText = '---';
+        document.getElementById('hud-opis').innerText = '';
+    }
+}
 });
         }
     }

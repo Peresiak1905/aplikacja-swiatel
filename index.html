@@ -19,34 +19,196 @@
             --border: rgba(0,212,255,0.2);
         }
         body { font-family: 'Rajdhani', sans-serif; background: var(--bg); color: white; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
-        #hud { background: var(--panel); border-bottom: 1px solid var(--border); padding: 8px 12px; display: flex; flex-direction: column; gap: 6px; position: relative; z-index: 100; }
-        #hud::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--blue), transparent); }
-        #hud-top { display: flex; justify-content: space-between; align-items: center; }
-        #app-nazwa { font-family: 'Share Tech Mono', monospace; font-size: 13px; color: var(--blue); letter-spacing: 3px; text-transform: uppercase; }
-        #hud-dystans { font-family: 'Share Tech Mono', monospace; font-size: 12px; color: #aaa; letter-spacing: 1px; }
-        #hud-dystans span { color: var(--yellow); font-size: 15px; font-weight: bold; }
-        #hud-main { display: flex; align-items: center; gap: 10px; }
-        #hud-swiatlo { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px; flex-shrink: 0; background: #111; border: 2px solid #333; transition: all 0.3s ease; }
-        #hud-swiatlo.czerwone { border-color: var(--red); box-shadow: 0 0 20px rgba(255,51,85,0.5), inset 0 0 15px rgba(255,51,85,0.1); }
-        #hud-swiatlo.zielone { border-color: var(--green); box-shadow: 0 0 20px rgba(0,255,136,0.5), inset 0 0 15px rgba(0,255,136,0.1); }
-        #hud-licznik { flex: 1; }
-        #hud-nazwa-skrzyzowania { font-size: 11px; color: #666; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        #hud-czas { font-family: 'Share Tech Mono', monospace; font-size: 38px; font-weight: bold; line-height: 1; transition: color 0.3s; }
-        #hud-czas.czerwone { color: var(--red); }
-        #hud-czas.zielone { color: var(--green); }
-        #hud-czas.brak { color: #444; }
-        #hud-opis { font-size: 13px; color: #aaa; margin-top: 2px; font-weight: 600; }
-        #hud-pasek-container { height: 3px; background: #1a1a2e; border-radius: 2px; overflow: hidden; margin-top: 4px; }
-        #hud-pasek { height: 100%; border-radius: 2px; transition: width 1s linear, background 0.3s; }
-        #hud-akcje { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
-        .btn-hud { padding: 4px 10px; border: 1px solid var(--border); background: rgba(0,212,255,0.05); color: var(--blue); border-radius: 20px; font-size: 11px; cursor: pointer; font-family: 'Rajdhani', sans-serif; font-weight: 600; letter-spacing: 1px; transition: all 0.2s; }
-        .btn-hud:hover, .btn-hud.aktywny { background: rgba(0,212,255,0.15); border-color: var(--blue); }
-        .btn-hud.zielony { border-color: rgba(0,255,136,0.3); color: var(--green); background: rgba(0,255,136,0.05); }
-        #hud-korekta { display: none; gap: 6px; }
-        .btn-korekta-hud { flex: 1; padding: 6px; border: none; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: 'Rajdhani', sans-serif; letter-spacing: 1px; }
+
+        /* ===== HUD GÓRNY ===== */
+        #hud {
+            background: var(--panel);
+            border-bottom: 1px solid var(--border);
+            padding: 10px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            position: relative;
+            z-index: 100;
+        }
+        #hud::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--blue), transparent);
+        }
+
+        /* Pasek tytułowy */
+        #hud-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #app-nazwa {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 12px;
+            color: var(--blue);
+            letter-spacing: 3px;
+        }
+        #hud-skrzyzowanie {
+            font-size: 11px;
+            color: #555;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            text-align: right;
+            max-width: 60%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Główny ekran HUD */
+        #hud-glowny {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-height: 80px;
+        }
+
+        /* Ikona światła */
+        #hud-ikona {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            flex-shrink: 0;
+            background: #0a0e1a;
+            border: 3px solid #222;
+            transition: all 0.4s ease;
+        }
+        #hud-ikona.czerwone {
+            border-color: var(--red);
+            box-shadow: 0 0 25px rgba(255,51,85,0.6), inset 0 0 20px rgba(255,51,85,0.15);
+        }
+        #hud-ikona.zielone {
+            border-color: var(--green);
+            box-shadow: 0 0 25px rgba(0,255,136,0.6), inset 0 0 20px rgba(0,255,136,0.15);
+        }
+
+        /* Duża liczba */
+        #hud-liczba {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 72px;
+            font-weight: bold;
+            line-height: 1;
+            transition: color 0.3s;
+            flex-shrink: 0;
+        }
+        #hud-liczba.czerwone { color: var(--red); }
+        #hud-liczba.zielone { color: var(--green); }
+        #hud-liczba.brak { color: #333; }
+
+        /* Jednostka i opis */
+        #hud-info {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 2px;
+        }
+        #hud-jednostka {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 16px;
+            color: #666;
+            letter-spacing: 2px;
+        }
+        #hud-opis-krotki {
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        #hud-opis-krotki.czerwone { color: var(--red); }
+        #hud-opis-krotki.zielone { color: var(--green); }
+
+        /* Pasek postępu */
+        #hud-pasek-container {
+            height: 4px;
+            background: #111;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        #hud-pasek {
+            height: 100%;
+            border-radius: 2px;
+            transition: width 1s linear, background 0.3s;
+        }
+
+        /* Przyciski korekty */
+        #hud-korekta {
+            display: none;
+            gap: 6px;
+        }
+        .btn-korekta-hud {
+            flex: 1;
+            padding: 7px;
+            border: none;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Rajdhani', sans-serif;
+            letter-spacing: 1px;
+        }
         #bkh-czerwone { background: rgba(255,51,85,0.15); color: var(--red); border: 1px solid rgba(255,51,85,0.3); }
         #bkh-zielone { background: rgba(0,255,136,0.15); color: var(--green); border: 1px solid rgba(0,255,136,0.3); }
+
+        /* Przyciski akcji */
+        #hud-akcje {
+            display: flex;
+            gap: 5px;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+        .btn-hud {
+            padding: 4px 10px;
+            border: 1px solid var(--border);
+            background: rgba(0,212,255,0.05);
+            color: var(--blue);
+            border-radius: 20px;
+            font-size: 11px;
+            cursor: pointer;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 600;
+            letter-spacing: 1px;
+            transition: all 0.2s;
+        }
+        .btn-hud:hover, .btn-hud.aktywny { background: rgba(0,212,255,0.15); border-color: var(--blue); }
+        .btn-hud.zielony { border-color: rgba(0,255,136,0.3); color: var(--green); background: rgba(0,255,136,0.05); }
+        .btn-hud.zielony.aktywny { background: rgba(0,255,136,0.2); }
+
+        /* ===== MAPA ===== */
         #mapa { flex: 1; width: 100%; }
+
+        /* Przycisk powrotu do pojazdu */
+        #btn-centruj {
+            display: none;
+            position: fixed;
+            bottom: 30px;
+            right: 16px;
+            z-index: 1000;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--panel);
+            border: 2px solid var(--blue);
+            color: var(--blue);
+            font-size: 22px;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(0,212,255,0.3);
+            transition: all 0.2s;
+        }
+        #btn-centruj:hover { background: rgba(0,212,255,0.15); }
+
+        /* ===== MODALS ===== */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 99999; justify-content: center; align-items: center; backdrop-filter: blur(4px); }
         .modal.aktywny { display: flex; }
         .modal-box { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 24px; width: 320px; text-align: center; max-height: 85vh; overflow-y: auto; }
@@ -66,6 +228,8 @@
         .btn-trasa-usun { background: rgba(255,51,85,0.1); color: var(--red); border: 1px solid rgba(255,51,85,0.3); border-radius: 8px; padding: 6px 9px; cursor: pointer; font-size: 12px; }
         #status-routing { font-size: 12px; color: var(--yellow); margin: 8px 0; min-height: 18px; font-family: 'Share Tech Mono', monospace; }
         #info-edycja { display: none; text-align: center; padding: 4px 12px; background: rgba(255,204,0,0.1); border-bottom: 1px solid rgba(255,204,0,0.3); color: var(--yellow); font-size: 11px; font-weight: 600; letter-spacing: 1px; }
+
+        /* Panel pomiaru */
         #panel-pomiar { display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: var(--panel); border-top: 1px solid var(--border); padding: 16px; z-index: 9999; text-align: center; }
         #panel-pomiar h3 { font-family: 'Share Tech Mono', monospace; color: var(--blue); font-size: 12px; letter-spacing: 2px; margin-bottom: 10px; }
         .btn-pomiar { padding: 12px 16px; border: none; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; margin: 4px; font-family: 'Rajdhani', sans-serif; letter-spacing: 1px; }
@@ -74,7 +238,6 @@
         #bpm-zapisz { background: rgba(0,212,255,0.15); color: var(--blue); border: 1px solid rgba(0,212,255,0.4); display: none; }
         #log-pomiarow { font-size: 11px; color: #555; margin: 6px 0; max-height: 60px; overflow-y: auto; font-family: 'Share Tech Mono', monospace; }
         #bpm-zamknij { background: rgba(255,255,255,0.05); color: #666; border: 1px solid #333; margin-top: 4px; }
-        .maplibregl-canvas { border-radius: 0; }
     </style>
 </head>
 <body>
@@ -83,35 +246,40 @@
 
 <div id="hud">
     <div id="hud-top">
-        <div id="app-nazwa">GreenWave</div>
-        <div id="hud-dystans">NASTĘPNE: <span id="hud-m">---</span> m</div>
+        <div id="app-nazwa">GREENWAVE</div>
+        <div id="hud-skrzyzowanie">Załaduj trasę lub kliknij sygnalizator</div>
     </div>
-    <div id="hud-main">
-        <div id="hud-swiatlo">⚫</div>
-        <div id="hud-licznik">
-            <div id="hud-nazwa-skrzyzowania">Wybierz trasę lub kliknij sygnalizator</div>
-            <div id="hud-czas" class="brak">--</div>
-            <div id="hud-opis"></div>
-            <div id="hud-pasek-container">
-                <div id="hud-pasek" style="width:0%;background:var(--blue)"></div>
-            </div>
+
+    <div id="hud-glowny">
+        <div id="hud-ikona">⚫</div>
+        <div id="hud-liczba" class="brak">--</div>
+        <div id="hud-info">
+            <div id="hud-jednostka"></div>
+            <div id="hud-opis-krotki"></div>
         </div>
     </div>
-    <div id="hud-korekta" style="display:none;gap:6px;">
-        <button class="btn-korekta-hud" id="bkh-czerwone" onclick="koryguj('czerwone')">🔴 CZERWONE</button>
-        <button class="btn-korekta-hud" id="bkh-zielone" onclick="koryguj('zielone')">🟢 ZIELONE</button>
+
+    <div id="hud-pasek-container">
+        <div id="hud-pasek" style="width:0%;background:var(--blue)"></div>
     </div>
+
+    <div id="hud-korekta" style="display:none;gap:6px;">
+        <button class="btn-korekta-hud" id="bkh-czerwone" onclick="koryguj('czerwone')">🔴 WŁAŚNIE CZERWONE</button>
+        <button class="btn-korekta-hud" id="bkh-zielone" onclick="koryguj('zielone')">🟢 WŁAŚNIE ZIELONE</button>
+    </div>
+
     <div id="hud-akcje">
         <button class="btn-hud zielony" id="btn-mowa" onclick="wlaczMowe()">🔇 GŁOS</button>
         <button class="btn-hud" onclick="przełączTrybZaznaczania()" id="btn-trasa">🗺 TRASA</button>
         <button class="btn-hud" id="btn-zapisz-trase" onclick="zapiszTrase()" style="display:none;">💾 ZAPISZ</button>
         <button class="btn-hud" onclick="otworzModalTras()">📋 MOJE</button>
         <button class="btn-hud" onclick="otworzModalRouting()">🧭 WYZNACZ</button>
-        <button class="btn-hud" id="btn-symulacja" onclick="aktywujSymulacje()" style="border-color:rgba(255,204,0,0.3);color:var(--yellow);background:rgba(255,204,0,0.05);">⚡ SYMULACJA</button>
+        <button class="btn-hud" onclick="aktywujSymulacje()" style="border-color:rgba(255,204,0,0.3);color:var(--yellow);background:rgba(255,204,0,0.05);">⚡ SYM</button>
     </div>
 </div>
 
 <div id="mapa"></div>
+<button id="btn-centruj" onclick="centrujNaPojezdzie()">📍</button>
 
 <div class="modal" id="modal-trasy">
     <div class="modal-box">
@@ -150,118 +318,31 @@
 </div>
 
 <script>
-    // ===== MAPA 3D MAPLIBRE =====
+    // ===== MAPA 3D =====
     const mapa = new maplibregl.Map({
         container: 'mapa',
         style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
         center: [19.9366, 50.0614],
-        zoom: 15,
-        pitch: 45,
+        zoom: 16,
+        pitch: 50,
         bearing: 0,
         antialias: true
     });
 
-    mapa.on('load', () => {
-        // Dodaj budynki 3D
-        mapa.addSource('openmaptiles', {
-            type: 'vector',
-            url: 'https://api.maptiler.com/tiles/v3/tiles.json?key=get_your_own_key'
-        });
+    mapa.on('load', () => { zaladujSygnalizatory(); });
 
-        // Warstwa budynków z OSM przez CARTO
-        const layers = mapa.getStyle().layers;
-        let labelLayerId;
-        for (let i = 0; i < layers.length; i++) {
-            if (layers[i].type === 'symbol' && layers[i].layout['text-field']) {
-                labelLayerId = layers[i].id;
-                break;
-            }
-        }
-
-        // Załaduj sygnalizatory po załadowaniu mapy
-        zaladujSygnalizatory();
+    // Wykryj ręczne przesunięcie mapy
+    let mapaPrzesunietaRecznie = false;
+    mapa.on('dragstart', () => {
+        mapaPrzesunietaRecznie = true;
+        document.getElementById('btn-centruj').style.display = 'flex';
+        document.getElementById('btn-centruj').style.alignItems = 'center';
+        document.getElementById('btn-centruj').style.justifyContent = 'center';
     });
 
-    let markery = {};
+    // ===== ZMIENNE =====
     let warstwyMarkerow = {};
     let liniaTrasy = null;
-
-    function zaladujSygnalizatory() {
-        // Dodaj ręczne markery
-        dodajMarker(50.03667663430466, 19.94068768665933, 'mateczny_kalwaryjska', 'Mateczny / Kalwaryjska');
-        dodajMarker(50.017316906572326, 19.991255815131844, 'wielicka_facimiech', 'Wielicka / Facimiech');
-        dodajMarker(50.01420215172329, 19.999269960360717, 'wielicka_teligi', 'Wielicka / Teligi');
-
-        // Załaduj z GeoJSON
-        fetch('sygnalizatory.geojson')
-            .then(r => r.json())
-            .then(data => {
-                data.features.forEach(f => {
-                    const id = 'osm_' + f.id;
-                    const nazwa = f.properties.name || 'Sygnalizator';
-                    const [lng, lat] = f.geometry.coordinates;
-                    dodajMarkerOSM(lat, lng, id, nazwa);
-                });
-            });
-    }
-
-    function stworzElementMarkera(kolor, rozmiar) {
-        const el = document.createElement('div');
-        el.style.cssText = `
-            width: ${rozmiar}px;
-            height: ${rozmiar}px;
-            background: ${kolor};
-            border: 2px solid white;
-            border-radius: 50%;
-            cursor: pointer;
-            box-shadow: 0 0 8px ${kolor};
-        `;
-        return el;
-    }
-
-    function dodajMarker(lat, lng, id, nazwa) {
-        const el = stworzElementMarkera('#ff3355', 16);
-        const marker = new maplibregl.Marker({ element: el })
-            .setLngLat([lng, lat])
-            .addTo(mapa);
-
-        el.addEventListener('click', () => {
-            if (trybZaznaczania) {
-                warstwyMarkerow[id].naTransie = !warstwyMarkerow[id].naTransie;
-                el.style.background = warstwyMarkerow[id].naTransie ? '#00ff88' : '#ff3355';
-                el.style.boxShadow = `0 0 8px ${warstwyMarkerow[id].naTransie ? '#00ff88' : '#ff3355'}`;
-            } else {
-                const dane = daneSkrzyzowan[id];
-                if (dane) aktywujSkrzyzowanie({ id, nazwa }, dane);
-                else otworzPomiar({ id, nazwa });
-            }
-        });
-
-        warstwyMarkerow[id] = { marker, el, naTransie: false, nazwa, lat, lng, reczny: true };
-    }
-
-    function dodajMarkerOSM(lat, lng, id, nazwa) {
-        const el = stworzElementMarkera('#ffcc00', 10);
-        const marker = new maplibregl.Marker({ element: el })
-            .setLngLat([lng, lat])
-            .addTo(mapa);
-
-        el.addEventListener('click', () => {
-            if (trybZaznaczania) {
-                warstwyMarkerow[id].naTransie = !warstwyMarkerow[id].naTransie;
-                el.style.background = warstwyMarkerow[id].naTransie ? '#00ff88' : '#ffcc00';
-                el.style.boxShadow = `0 0 8px ${warstwyMarkerow[id].naTransie ? '#00ff88' : '#ffcc00'}`;
-            } else {
-                const dane = daneSkrzyzowan[id];
-                if (dane) aktywujSkrzyzowanie({ id, nazwa }, dane);
-                else otworzPomiar({ id, nazwa });
-            }
-        });
-
-        warstwyMarkerow[id] = { marker, el, naTransie: false, nazwa, lat, lng, reczny: false };
-    }
-
-    // ===== ZMIENNE =====
     let aktualneSkrzyzowanie = null;
     let pomiary = [];
     let interwał = null;
@@ -273,6 +354,8 @@
     let licznikPosrednich = 0;
     let pozycjaGPS = null;
     let markerGPS = null;
+    let kierunekJazdy = 0;
+    let poprzedniaPozycja = null;
 
     // ===== DANE SKRZYŻOWAŃ =====
     function generujLosoweDane() {
@@ -309,32 +392,69 @@
                 liczba++;
             }
         });
-        alert('✅ Symulacja aktywna — ' + liczba + ' skrzyżowań otrzymało losowe dane');
+        alert('✅ Symulacja — ' + liczba + ' skrzyżowań');
     }
 
     // ===== GPS =====
+    function centrujNaPojezdzie() {
+        if (!pozycjaGPS) return;
+        mapaPrzesunietaRecznie = false;
+        document.getElementById('btn-centruj').style.display = 'none';
+        mapa.flyTo({
+            center: [pozycjaGPS.lng, pozycjaGPS.lat],
+            zoom: 16,
+            pitch: 50,
+            bearing: kierunekJazdy,
+            duration: 800
+        });
+    }
+
     if (navigator.geolocation) {
         navigator.geolocation.watchPosition(function(pos) {
             const lat = pos.coords.latitude;
             const lng = pos.coords.longitude;
+
+            // Oblicz kierunek jazdy
+            if (poprzedniaPozycja) {
+                const dLng = lng - poprzedniaPozycja.lng;
+                const dLat = lat - poprzedniaPozycja.lat;
+                const odleglosc = Math.sqrt(dLat*dLat + dLng*dLng);
+                if (odleglosc > 0.00003) {
+                    kierunekJazdy = Math.atan2(dLng, dLat) * 180 / Math.PI;
+                }
+            }
+            poprzedniaPozycja = { lat, lng };
             pozycjaGPS = { lat, lng };
 
+            // Aktualizuj marker GPS
             if (markerGPS) {
                 markerGPS.setLngLat([lng, lat]);
             } else {
                 const el = document.createElement('div');
-                el.style.cssText = `
-                    width: 20px; height: 20px;
-                    background: #00d4ff;
-                    border: 3px solid white;
-                    border-radius: 50%;
-                    box-shadow: 0 0 15px #00d4ff;
-                `;
-                markerGPS = new maplibregl.Marker({ element: el })
+                el.innerHTML = `<div style="
+                    width: 0; height: 0;
+                    border-left: 10px solid transparent;
+                    border-right: 10px solid transparent;
+                    border-bottom: 24px solid #00d4ff;
+                    filter: drop-shadow(0 0 8px #00d4ff);
+                "></div>`;
+                el.style.cssText = 'width:20px;height:24px;';
+                markerGPS = new maplibregl.Marker({ element: el, anchor: 'bottom' })
                     .setLngLat([lng, lat])
                     .addTo(mapa);
-                mapa.flyTo({ center: [lng, lat], zoom: 16, pitch: 45 });
             }
+
+            // Obróć i wycentruj mapę gdy nie jest przesunięta ręcznie
+            if (!mapaPrzesunietaRecznie) {
+                mapa.easeTo({
+                    center: [lng, lat],
+                    bearing: kierunekJazdy,
+                    pitch: 50,
+                    zoom: 16,
+                    duration: 500
+                });
+            }
+
             aktualizujHUD();
         }, null, { enableHighAccuracy: true, maximumAge: 0 });
     }
@@ -365,61 +485,86 @@
             }
         });
 
-        if (najblizszyId) {
-            document.getElementById('hud-m').innerText = Math.round(minDyst);
-            const dane = daneSkrzyzowan[najblizszyId];
+        if (!najblizszyId) return;
 
-            if (dane && najblizszyId !== aktualneSkrzyzowanie?.id) {
-                const nazwa = warstwyMarkerow[najblizszyId].nazwa || 'Sygnalizator';
-                aktywujSkrzyzowanie({ id: najblizszyId, nazwa }, dane);
-            }
+        const dane = daneSkrzyzowan[najblizszyId];
+        const nazwa = warstwyMarkerow[najblizszyId].nazwa || 'Sygnalizator';
 
-            if (dane) {
-                const stan = obliczStan(dane);
-                const predkoscMs = minDyst / stan.pozostalo;
-                const predkoscKmh = Math.round(predkoscMs * 3.6);
-                let komunikat = '';
-                if (stan.kolor === 'czerwone') {
-                    if (predkoscKmh >= 10 && predkoscKmh <= 90) komunikat = `🚗 Jedź ${predkoscKmh} km/h → złapiesz zielone`;
-                    else if (predkoscKmh < 10) komunikat = `⏸ Zatrzymaj się`;
-                    else komunikat = `⏳ Poczekaj na kolejne zielone`;
+        document.getElementById('hud-skrzyzowanie').innerText = nazwa + ' · ' + Math.round(minDyst) + 'm';
+
+        if (dane && najblizszyId !== aktualneSkrzyzowanie?.id) {
+            aktywujSkrzyzowanie({ id: najblizszyId, nazwa }, dane);
+        }
+
+        // Oblicz prędkość
+        if (dane) {
+            const stan = obliczStan(dane);
+            const predkoscMs = minDyst / stan.pozostalo;
+            const predkoscKmh = Math.round(predkoscMs * 3.6);
+
+            const ikona = document.getElementById('hud-ikona');
+            const liczba = document.getElementById('hud-liczba');
+            const jednostka = document.getElementById('hud-jednostka');
+            const opis = document.getElementById('hud-opis-krotki');
+            const pasek = document.getElementById('hud-pasek');
+
+            if (stan.kolor === 'czerwone') {
+                // STOISZ — pokaż czas do zielonego
+                ikona.className = 'czerwone';
+                ikona.innerText = '🔴';
+                liczba.className = 'czerwone';
+                liczba.innerText = stan.pozostalo;
+                jednostka.innerText = 'SEK';
+                opis.className = 'czerwone';
+                opis.innerText = 'DO ZIELONEGO';
+                const procent = (stan.pozostalo / dane.czasCzerwone) * 100;
+                pasek.style.width = procent + '%';
+                pasek.style.background = 'var(--red)';
+
+                // Komunikat głosowy
+                if (stan.pozostalo === 10) mow('Za 10 sekund zielone');
+                if (stan.pozostalo === 5) mow('Za 5 sekund zielone');
+                if (stan.pozostalo === 3) mow('Za 3 sekundy zielone');
+
+            } else {
+                // JEDZIESZ — pokaż optymalną prędkość
+                ikona.className = 'zielone';
+                ikona.innerText = '🟢';
+
+                if (predkoscKmh >= 10 && predkoscKmh <= 90) {
+                    liczba.className = 'zielone';
+                    liczba.innerText = predkoscKmh;
+                    jednostka.innerText = 'KM/H';
+                    opis.className = 'zielone';
+                    opis.innerText = 'ABY ZŁAPAĆ ZIELONE';
+                } else if (predkoscKmh < 10) {
+                    liczba.className = 'zielone';
+                    liczba.innerText = '✓';
+                    jednostka.innerText = '';
+                    opis.className = 'zielone';
+                    opis.innerText = 'JEDŹ NORMALNIE';
                 } else {
-                    if (predkoscKmh <= 90 && predkoscKmh >= 10) komunikat = `🟢 Jedź ${predkoscKmh} km/h → zdążysz`;
-                    else if (predkoscKmh < 10) komunikat = `🟢 Jedź normalnie`;
-                    else komunikat = `🔴 Nie zdążysz — zwolnij`;
+                    liczba.className = 'czerwone';
+                    liczba.innerText = '✗';
+                    jednostka.innerText = '';
+                    opis.className = 'czerwone';
+                    opis.innerText = 'NIE ZDĄŻYSZ — ZWOLNIJ';
                 }
-                document.getElementById('hud-opis').innerText = komunikat;
+
+                const procent = (stan.pozostalo / dane.czasZielone) * 100;
+                pasek.style.width = procent + '%';
+                pasek.style.background = 'var(--green)';
+
+                if (stan.pozostalo === 3) mow('Uwaga, za 3 sekundy czerwone');
             }
-        } else {
-            document.getElementById('hud-m').innerText = '---';
         }
     }
 
     function aktywujSkrzyzowanie(skrzyzowanie, dane) {
         aktualneSkrzyzowanie = skrzyzowanie;
-        document.getElementById('hud-nazwa-skrzyzowania').innerText = skrzyzowanie.nazwa;
         document.getElementById('hud-korekta').style.display = 'flex';
         if (interwał) clearInterval(interwał);
-
-        function aktualizuj() {
-            const stan = obliczStan(dane);
-            const swiatlo = document.getElementById('hud-swiatlo');
-            const czas = document.getElementById('hud-czas');
-            const pasek = document.getElementById('hud-pasek');
-            swiatlo.className = stan.kolor;
-            swiatlo.innerText = stan.kolor === 'zielone' ? '🟢' : '🔴';
-            czas.className = stan.kolor;
-            czas.innerText = stan.pozostalo;
-            const procent = (stan.pozostalo / (stan.kolor === 'zielone' ? dane.czasZielone : dane.czasCzerwone)) * 100;
-            pasek.style.width = procent + '%';
-            pasek.style.background = stan.kolor === 'zielone' ? 'var(--green)' : 'var(--red)';
-            if (stan.kolor === 'czerwone' && stan.pozostalo === 10) mow('Za 10 sekund zielone');
-            if (stan.kolor === 'czerwone' && stan.pozostalo === 5) mow('Za 5 sekund zmiana światła');
-            if (stan.kolor === 'czerwone' && stan.pozostalo === 3) mow('Za 3 sekundy zielone');
-            if (stan.kolor === 'zielone' && stan.pozostalo === 3) mow('Uwaga, za 3 sekundy czerwone');
-        }
-        aktualizuj();
-        interwał = setInterval(aktualizuj, 1000);
+        interwał = setInterval(aktualizujHUD, 1000);
         setInterval(aktualizujHUD, 3000);
     }
 
@@ -478,6 +623,64 @@
         window.speechSynthesis.speak(msg);
     }
 
+    // ===== MARKERY =====
+    function zaladujSygnalizatory() {
+        dodajMarker(50.03667663430466, 19.94068768665933, 'mateczny_kalwaryjska', 'Mateczny / Kalwaryjska');
+        dodajMarker(50.017316906572326, 19.991255815131844, 'wielicka_facimiech', 'Wielicka / Facimiech');
+        dodajMarker(50.01420215172329, 19.999269960360717, 'wielicka_teligi', 'Wielicka / Teligi');
+
+        fetch('sygnalizatory.geojson')
+            .then(r => r.json())
+            .then(data => {
+                data.features.forEach(f => {
+                    const id = 'osm_' + f.id;
+                    const nazwa = f.properties.name || 'Sygnalizator';
+                    const [lng, lat] = f.geometry.coordinates;
+                    dodajMarkerOSM(lat, lng, id, nazwa);
+                });
+            });
+    }
+
+    function stworzEl(kolor, rozmiar) {
+        const el = document.createElement('div');
+        el.style.cssText = `width:${rozmiar}px;height:${rozmiar}px;background:${kolor};border:2px solid white;border-radius:50%;cursor:pointer;box-shadow:0 0 8px ${kolor};transition:all 0.3s;`;
+        return el;
+    }
+
+    function dodajMarker(lat, lng, id, nazwa) {
+        const el = stworzEl('#ff3355', 16);
+        const marker = new maplibregl.Marker({ element: el }).setLngLat([lng, lat]).addTo(mapa);
+        el.addEventListener('click', () => {
+            if (trybZaznaczania) {
+                warstwyMarkerow[id].naTransie = !warstwyMarkerow[id].naTransie;
+                const k = warstwyMarkerow[id].naTransie ? '#00ff88' : '#ff3355';
+                el.style.background = k; el.style.boxShadow = `0 0 8px ${k}`;
+            } else {
+                const dane = daneSkrzyzowan[id];
+                if (dane) aktywujSkrzyzowanie({ id, nazwa }, dane);
+                else otworzPomiar({ id, nazwa });
+            }
+        });
+        warstwyMarkerow[id] = { marker, el, naTransie: false, nazwa, lat, lng, reczny: true };
+    }
+
+    function dodajMarkerOSM(lat, lng, id, nazwa) {
+        const el = stworzEl('#ffcc00', 10);
+        const marker = new maplibregl.Marker({ element: el }).setLngLat([lng, lat]).addTo(mapa);
+        el.addEventListener('click', () => {
+            if (trybZaznaczania) {
+                warstwyMarkerow[id].naTransie = !warstwyMarkerow[id].naTransie;
+                const k = warstwyMarkerow[id].naTransie ? '#00ff88' : '#ffcc00';
+                el.style.background = k; el.style.boxShadow = `0 0 8px ${k}`;
+            } else {
+                const dane = daneSkrzyzowan[id];
+                if (dane) aktywujSkrzyzowanie({ id, nazwa }, dane);
+                else otworzPomiar({ id, nazwa });
+            }
+        });
+        warstwyMarkerow[id] = { marker, el, naTransie: false, nazwa, lat, lng, reczny: false };
+    }
+
     // ===== POMIAR =====
     function otworzPomiar(skrzyzowanie) {
         aktualneSkrzyzowanie = skrzyzowanie;
@@ -486,7 +689,7 @@
         document.getElementById('panel-pomiar-nazwa').innerText = skrzyzowanie.nazwa.toUpperCase();
         document.getElementById('log-pomiarow').innerHTML = '';
         document.getElementById('bpm-zapisz').style.display = 'none';
-        document.getElementById('hud-nazwa-skrzyzowania').innerText = skrzyzowanie.nazwa;
+        document.getElementById('hud-skrzyzowanie').innerText = skrzyzowanie.nazwa;
     }
 
     function zamknijPomiar() {
@@ -501,8 +704,6 @@
         document.getElementById('log-pomiarow').innerHTML += (kolor === 'czerwone' ? '🔴' : '🟢') + ' ' + godzinaStr + '<br>';
         if (pomiary.length >= 2) {
             document.getElementById('bpm-zapisz').style.display = 'inline-block';
-            const roznica = Math.round((pomiary[pomiary.length-1].czas - pomiary[pomiary.length-2].czas) / 1000);
-            document.getElementById('hud-czas').innerText = roznica + 's';
         }
     }
 
@@ -610,9 +811,9 @@
         zamknijModal('modal-trasy');
         Object.keys(warstwyMarkerow).forEach(id => {
             warstwyMarkerow[id].naTransie = false;
-            const kolor = warstwyMarkerow[id].reczny ? '#ff3355' : '#ffcc00';
-            warstwyMarkerow[id].el.style.background = kolor;
-            warstwyMarkerow[id].el.style.boxShadow = `0 0 8px ${kolor}`;
+            const k = warstwyMarkerow[id].reczny ? '#ff3355' : '#ffcc00';
+            warstwyMarkerow[id].el.style.background = k;
+            warstwyMarkerow[id].el.style.boxShadow = `0 0 8px ${k}`;
         });
         trybZaznaczania = true;
         document.getElementById('btn-trasa').innerText = '✅ ZAZNACZ';
@@ -635,9 +836,9 @@
         const punkty = wczytajTrasy()[nazwa] || [];
         Object.keys(warstwyMarkerow).forEach(id => {
             warstwyMarkerow[id].naTransie = false;
-            const kolor = warstwyMarkerow[id].reczny ? '#ff3355' : '#ffcc00';
-            warstwyMarkerow[id].el.style.background = kolor;
-            warstwyMarkerow[id].el.style.boxShadow = `0 0 8px ${kolor}`;
+            const k = warstwyMarkerow[id].reczny ? '#ff3355' : '#ffcc00';
+            warstwyMarkerow[id].el.style.background = k;
+            warstwyMarkerow[id].el.style.boxShadow = `0 0 8px ${k}`;
         });
         punkty.forEach(id => {
             if (warstwyMarkerow[id]) {
@@ -653,9 +854,9 @@
             wyjdzZTrybu();
             Object.keys(warstwyMarkerow).forEach(id => {
                 warstwyMarkerow[id].naTransie = false;
-                const kolor = warstwyMarkerow[id].reczny ? '#ff3355' : '#ffcc00';
-                warstwyMarkerow[id].el.style.background = kolor;
-                warstwyMarkerow[id].el.style.boxShadow = `0 0 8px ${kolor}`;
+                const k = warstwyMarkerow[id].reczny ? '#ff3355' : '#ffcc00';
+                warstwyMarkerow[id].el.style.background = k;
+                warstwyMarkerow[id].el.style.boxShadow = `0 0 8px ${k}`;
             });
         } else {
             nowaTrasa();
@@ -717,34 +918,25 @@
             const dane = await resp.json();
             if (dane.code !== 'Ok') { status.innerText = '❌ Błąd trasy'; return; }
 
-            if (liniaTrasy) { mapa.removeLayer('trasa'); mapa.removeSource('trasa'); liniaTrasy = null; }
+            if (liniaTrasy) { try { mapa.removeLayer('trasa'); mapa.removeSource('trasa'); } catch(e) {} liniaTrasy = null; }
 
             const wsp = dane.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
-
-            mapa.addSource('trasa', {
-                type: 'geojson',
-                data: { type: 'Feature', geometry: dane.routes[0].geometry }
-            });
-            mapa.addLayer({
-                id: 'trasa',
-                type: 'line',
-                source: 'trasa',
-                layout: { 'line-join': 'round', 'line-cap': 'round' },
-                paint: { 'line-color': '#8e44ad', 'line-width': 6, 'line-opacity': 0.8 }
-            });
+            mapa.addSource('trasa', { type: 'geojson', data: { type: 'Feature', geometry: dane.routes[0].geometry } });
+            mapa.addLayer({ id: 'trasa', type: 'line', source: 'trasa', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': '#8e44ad', 'line-width': 6, 'line-opacity': 0.8 } });
             liniaTrasy = true;
 
-            const bounds = wsp.reduce((b, c) => b.extend([c[1], c[0]]), new maplibregl.LngLatBounds([wsp[0][1], wsp[0][0]], [wsp[0][1], wsp[0][0]]));
-            mapa.fitBounds(bounds, { padding: 50 });
+            const coords = dane.routes[0].geometry.coordinates;
+            const bounds = coords.reduce((b, c) => b.extend(c), new maplibregl.LngLatBounds(coords[0], coords[0]));
+            mapa.fitBounds(bounds, { padding: 60 });
 
             let liczba = 0;
             Object.keys(warstwyMarkerow).forEach(id => {
                 const m = warstwyMarkerow[id];
                 const naT = czyNaTransie(m.lat, m.lng, wsp, 20);
                 m.naTransie = naT;
-                const kolor = naT ? '#00ff88' : (m.reczny ? '#ff3355' : '#ffcc00');
-                m.el.style.background = kolor;
-                m.el.style.boxShadow = `0 0 8px ${kolor}`;
+                const k = naT ? '#00ff88' : (m.reczny ? '#ff3355' : '#ffcc00');
+                m.el.style.background = k;
+                m.el.style.boxShadow = `0 0 8px ${k}`;
                 if (naT) liczba++;
             });
 
@@ -755,12 +947,12 @@
     }
 
     function wyczyscTrase() {
-        if (liniaTrasy) { mapa.removeLayer('trasa'); mapa.removeSource('trasa'); liniaTrasy = null; }
+        if (liniaTrasy) { try { mapa.removeLayer('trasa'); mapa.removeSource('trasa'); } catch(e) {} liniaTrasy = null; }
         Object.keys(warstwyMarkerow).forEach(id => {
             warstwyMarkerow[id].naTransie = false;
-            const kolor = warstwyMarkerow[id].reczny ? '#ff3355' : '#ffcc00';
-            warstwyMarkerow[id].el.style.background = kolor;
-            warstwyMarkerow[id].el.style.boxShadow = `0 0 8px ${kolor}`;
+            const k = warstwyMarkerow[id].reczny ? '#ff3355' : '#ffcc00';
+            warstwyMarkerow[id].el.style.background = k;
+            warstwyMarkerow[id].el.style.boxShadow = `0 0 8px ${k}`;
         });
         document.getElementById('status-routing').innerText = '';
         document.getElementById('adres-start').value = '';
